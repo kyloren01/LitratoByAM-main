@@ -8,13 +8,36 @@ import LitratoFooter from "../../../Litratocomponents/Footer";
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const handleLogin = () => {
-    if (username === "admin" && password === "1234") {
-      router.push("/customer");
+
+  const handleLogin = async () => {
+    const res = await fetch("http://localhost:5000/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      console.log("Login response:", data);
+      //checks the user's role and got the dashboard based on assigned role
+      if (data.role === "admin") {
+        router.push("/admin");
+        alert("Welcome Admin!");
+      } else if (data.role === "customer") {
+        router.push("/customer/dashboard");
+        alert("Welcome Customer!");
+      } else {
+        router.push("/employee");
+        alert("Welcome Employee!");
+      }
     } else {
-      alert("Invalid Nigga");
-    } // Redirect to customer page
+      const errorData = await res.json();
+      setError(errorData.message); // Set error message from server response
+    }
   };
 
   return (

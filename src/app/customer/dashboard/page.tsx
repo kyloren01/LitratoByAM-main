@@ -54,7 +54,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-row gap-6 h-screen">
       <div>
-        <LitratoSidebar></LitratoSidebar>
+        
       </div>
       {/* Dashboad Section */}
       <div>
