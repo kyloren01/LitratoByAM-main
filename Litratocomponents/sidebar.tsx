@@ -16,13 +16,21 @@ export default function LitratoSidebar() {
 
   const navItems = [
     { label: "Booking", icon: "/Icons/booking.png", path: "/customer/booking" },
-    { label: "Dashboard", icon: "/Icons/dashboard.png", path: "/dashboard" },
+    {
+      label: "Dashboard",
+      icon: "/Icons/dashboard.png",
+      path: "/customer/dashboard",
+    },
     {
       label: "Rescheduling",
       icon: "/Icons/rescheduling.png",
-      path: "/rescheduling",
+      path: "/customer/rescheduling",
     },
-    { label: "Manage Account", icon: "/Icons/person.png", path: "/account" },
+    {
+      label: "Manage Account",
+      icon: "/Icons/person.png",
+      path: "/customer/account",
+    },
   ];
 
   return (

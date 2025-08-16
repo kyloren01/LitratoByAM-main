@@ -1,4 +1,3 @@
-import "bootstrap/dist/css/bootstrap.min.css";
 import LitratoSidebar from "../../../Litratocomponents/sidebar";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Antic_Didone } from "next/font/google";
@@ -12,7 +11,6 @@ const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
-
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -25,16 +23,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${anticDidone.variable} flex antialiased`}
-      >
-        <LitratoSidebar></LitratoSidebar>
-        <main className="flex-1"> {children}</main>
+      <body className="flex min-h-screen bg-gray-100">
+        {/* Sidebar fixed on the left */}
+        <div className="fixed left-0 top-0 h-full">
+          <LitratoSidebar />
+        </div>
+
+        {/* Main content shifted right */}
+        <main className="ml-64 flex-1 pl-4 overflow-y-auto">{children}</main>
       </body>
     </html>
   );

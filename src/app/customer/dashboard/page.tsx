@@ -53,9 +53,7 @@ export default function DashboardPage() {
   ];
   return (
     <div className="flex flex-row gap-6 h-screen">
-      <div>
-        
-      </div>
+      <div></div>
       {/* Dashboad Section */}
       <div>
         <div className="flex flex-col gap-8 mt-12">
