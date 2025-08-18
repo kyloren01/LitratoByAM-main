@@ -4,8 +4,7 @@ import LitratoBranding from "../../../Litratocomponents/Branding";
 import LitratoFooter from "../../../Litratocomponents/Footer";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { set } from "zod";  
-
+import { set } from "zod";
 
 export default function RegistrationPage() {
   const router = useRouter();
@@ -18,7 +17,7 @@ export default function RegistrationPage() {
     password: "",
     confirmPassword: "",
     address: "",
-    contact: ""
+    contact: "",
   });
 
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +44,7 @@ export default function RegistrationPage() {
       const res = await fetch("http://localhost:5000/api/customer/register", {
         method: "POST",
         headers: { "Content-type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           username: form.username,
           password: form.password,
           firstname: form.firstname,
@@ -53,8 +52,8 @@ export default function RegistrationPage() {
           birthdate: form.birthdate,
           sex: form.sex,
           address: form.address,
-          contact: form.contact
-        })
+          contact: form.contact,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -215,7 +214,7 @@ export default function RegistrationPage() {
           </div>
           <button
             type="submit"
-            className="bg-litratoblack text-white px-4 py-2 w-28 text-center rounded-lg font-bold"
+            className="bg-litratoblack text-white px-4 py-2 w-28 text-center rounded font-bold"
           >
             Register
           </button>
