@@ -1,0 +1,15 @@
+### Register a user
+POST http://localhost:5000/api/customer/register
+Content-Type: application/json
+
+{
+  "firstname": "John",
+  "lastname": "Doe",
+  "username": "johndoe@example.com",
+  "password": "password123",
+  "birthdate": "1990-01-01",
+  "sex": "male",
+  "address": "123 Main St, Anytown, USA",
+  "contact": "555-1234"
+
+}

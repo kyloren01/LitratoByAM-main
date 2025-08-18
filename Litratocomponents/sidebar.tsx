@@ -11,16 +11,17 @@ export default function LitratoSidebar() {
 
   const handleActive = (label: string, path: string) => {
     setActiveItem(label);
-    router.replace(path); // Navigate without reloading
+    router.push(path); // Navigate without reloading
   };
 
   const navItems = [
-    { label: "Booking", icon: "/Icons/booking.png", path: "/customer/booking" },
     {
       label: "Dashboard",
       icon: "/Icons/dashboard.png",
       path: "/customer/dashboard",
     },
+    { label: "Booking", icon: "/Icons/booking.png", path: "/customer/booking" },
+    
     {
       label: "Rescheduling",
       icon: "/Icons/rescheduling.png",
@@ -29,7 +30,7 @@ export default function LitratoSidebar() {
     {
       label: "Manage Account",
       icon: "/Icons/person.png",
-      path: "/customer/account",
+      path: "/customer/accountmanager",
     },
   ];
 
