@@ -1,4 +1,5 @@
 import LitratoSidebar from "../../../Litratocomponents/sidebar";
+import AuthGuard from "../../../Litratocomponents/AuthGuard";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Antic_Didone } from "next/font/google";
 
@@ -29,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="flex min-h-screen bg-gray-100">
+  <AuthGuard />
         {/* Sidebar fixed on the left */}
         <div className="fixed left-0 top-0 h-full">
           <LitratoSidebar />

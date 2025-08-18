@@ -23,6 +23,10 @@ export default function LoginPage() {
     if (res.ok) {
       const data = await res.json();
       console.log("Login response:", data);
+      try {
+        // Persist access token for guards; API already returns 'Bearer <token>'
+        localStorage.setItem("access_token", data.token);
+      } catch {}
       //checks the user's role and got the dashboard based on assigned role
       if (data.role === "admin") {
         router.push("/admin");
