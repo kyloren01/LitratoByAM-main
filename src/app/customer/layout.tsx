@@ -1,3 +1,4 @@
+import "bootstrap/dist/css/bootstrap.min.css";
 import LitratoSidebar from "../../../Litratocomponents/sidebar";
 import AuthGuard from "../../../Litratocomponents/AuthGuard";
 import type { Metadata } from "next";
