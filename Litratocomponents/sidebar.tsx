@@ -91,7 +91,7 @@ export default function LitratoSidebar() {
       {/* Branding Section */}
       <div className="mt-auto py-4 flex justify-center items-center transition-all duration-500 ease-in-out">
         {isOpen ? (
-          <div className="flex flex-col text-center font-didone leading-tight transition-opacity duration-500 ease-in-out opacity-100">
+          <div className="flex flex-col text-center font-serif leading-tight transition-opacity duration-500 ease-in-out opacity-100">
             <div className="text-[48px]">
               LITRATO
               <br />
