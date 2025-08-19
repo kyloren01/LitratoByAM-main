@@ -4,14 +4,16 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import LitratoBranding from "../../../Litratocomponents/Branding";
 import LitratoFooter from "../../../Litratocomponents/Footer";
+import { toast } from "sonner";
+import { jwtDecode } from "jwt-decode";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleLogin = async () => {
+  try {
     const res = await fetch("http://localhost:5000/api/auth/login", {
       method: "POST",
       headers: {
@@ -23,26 +25,56 @@ export default function LoginPage() {
     if (res.ok) {
       const data = await res.json();
       console.log("Login response:", data);
+
+      // If backend sends "Bearer <token>", strip the prefix
+      const token = data.token.startsWith("Bearer ")
+        ? data.token.split(" ")[1]
+        : data.token;
+
       try {
-        // Persist access token for guards; API already returns 'Bearer <token>'
-        localStorage.setItem("access_token", data.token);
-      } catch {}
-      //checks the user's role and got the dashboard based on assigned role
-      if (data.role === "admin") {
+        localStorage.setItem("access_token", token);
+      } catch {
+        toast.error("Failed to save access token. Please try again.");
+      }
+
+      // Either use data.role (if backend sends it) OR decode from token
+      let role = data.role;
+      if (!role) {
+        try {
+          const decoded: any = jwtDecode(token);
+          role = decoded.role;
+        } catch {
+          toast.error("Invalid token received.");
+          return;
+        }
+      }
+
+      if (role === "admin") {
         router.push("/admin");
-        alert("Welcome Admin!");
-      } else if (data.role === "customer") {
+        toast.success("Welcome Admin!");
+      } else if (role === "customer") {
         router.push("/customer/dashboard");
-        alert("Welcome Customer!");
+        toast.success("Welcome Customer!");
       } else {
         router.push("/employee");
-        alert("Welcome Employee!");
+        toast.success("Welcome Employee!");
       }
     } else {
-      const errorData = await res.json();
-      setError(errorData.message); // Set error message from server response
+      let message = "Login failed";
+      try {
+        const errorData = await res.json();
+        if (res.status === 401) {
+          message = "Invalid username or password";
+        } else if (errorData?.message) {
+          message = errorData.message;
+        }
+      } catch {}
+      toast.error(message);
     }
-  };
+  } catch (e) {
+    toast.error("Unable to connect to server. Please try again later.");
+  }
+};
 
   return (
     <div>
@@ -84,10 +116,11 @@ export default function LoginPage() {
         {/* Login Button */}
         <div
           onClick={handleLogin}
-          className="bg-litratoblack text-white px-6 py-2 rounded-lg hover:cursor-pointer font-bold transition-all duration-200 hover:bg-gray-800"
+          className="bg-litratoblack  text-white px-6 py-2 rounded-lg hover:cursor-pointer font-bold transition-all duration-200 hover:bg-black"
         >
           LOGIN
         </div>
+        <div>Don't have an account? <a href="/registration">Register</a></div>
       </section>
 
       <LitratoFooter />

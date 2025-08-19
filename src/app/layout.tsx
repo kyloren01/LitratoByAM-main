@@ -2,6 +2,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Antic_Didone } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "../components/ui/sonner";
 
 const anticDidone = Antic_Didone({
   variable: "--font-antic-didone",
@@ -34,6 +35,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${anticDidone.variable} antialiased`}
       >
         {children}
+  {/* Global toast notifications */}
+  <Toaster richColors position="top-center" />
       </body>
     </html>
   );

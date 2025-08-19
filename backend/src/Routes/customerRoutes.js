@@ -5,7 +5,7 @@ const roleMiddleware = require('../Middleware/roleMiddleware');
 
 const router = express.Router();
 
-router.post('/register', customerController.register);
+
 
 
 module.exports = router;

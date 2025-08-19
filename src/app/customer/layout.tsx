@@ -1,5 +1,5 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import LitratoSidebar from "../../../Litratocomponents/sidebar";
+import CustomerLayoutShell from "../../../Litratocomponents/CustomerLayoutShell";
 import AuthGuard from "../../../Litratocomponents/AuthGuard";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Antic_Didone } from "next/font/google";
@@ -30,15 +30,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="flex min-h-screen bg-gray-100">
-  <AuthGuard />
-        {/* Sidebar fixed on the left */}
-        <div className="fixed left-0 top-0 h-full">
-          <LitratoSidebar />
-        </div>
-
-        {/* Main content shifted right */}
-        <main className="ml-64 flex-1 pl-4 overflow-y-auto">{children}</main>
+      <body>
+        <AuthGuard>
+          <CustomerLayoutShell>{children}</CustomerLayoutShell>
+        </AuthGuard>
       </body>
     </html>
   );
