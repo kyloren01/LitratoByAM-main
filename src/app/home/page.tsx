@@ -34,24 +34,19 @@ export default function HomePage() {
           <div className="absolute top-[-25] left-0 w-full h-full flex items-center justify-center z-10 gap-5 pl-48">
             <LitratoNavbar />
             <div
-              onClick={handleRegistration}
-              className="absolute top-[60] right-60 bg-white font-semibold h-[45px] py-1 px-4 text-[20px] rounded-xl border-2 border-litratoblack hover:cursor-pointer shadow-md shadow-litratoblack"
+              onClick={handleLogin}
+              className="absolute top-[60] hover:scale-110 duration-500 right-60 bg-black text-white text-center font-semibold h-[45px] py-1 px-4 text-[20px] rounded-xl border-2 border-white hover:cursor-pointer shadow-md shadow-litratoblack"
             >
-              Register
+              LOGIN
             </div>
           </div>
         </div>
         <LitratoBranding />
-        <div className="flex justify-self-center items-center pt-12 gap-2">
+        <div className="flex justify-self-center items-center mt-6 gap-2">
           <div onClick={handleAvailableDate}>
             <Datepicker />
           </div>
-          <div
-            onClick={handleLogin}
-            className="bg-litratoblack text-white px-4 py-2 rounded-lg hover:cursor-pointer font-bold"
-          >
-            LOGIN
-          </div>
+          
         </div>
       </section>
       <div className=" bg-litratored h-2 mt-5 "></div>
@@ -99,7 +94,7 @@ export default function HomePage() {
           </p>
           <p className="text-xl">We are LITRATO, moments in memories.</p>
 
-          <div className="flex ml-24 bg-litratoblack text-white w-40 py-8 justify-center items-center h-10 rounded-lg hover:cursor-pointer">
+          <div className="flex ml-24 hover:scale-110 duration-500 bg-litratoblack text-white w-40 py-8 justify-center items-center h-10 rounded-lg hover:cursor-pointer">
             Explore More
           </div>
         </div>
@@ -166,7 +161,7 @@ export default function HomePage() {
           ></Image>
           <div
             onClick={handleLogin}
-            className="bg-litratoblack text-white w-1/2 py-3 text-center rounded-xl hover:cursor-pointer self-center mt-20 font-bold"
+            className="bg-litratoblack hover:scale-110 duration-500 text-white w-1/2 py-3 text-center rounded-xl hover:cursor-pointer self-center mt-20 font-bold"
           >
             {" "}
             BOOK NOW{" "}

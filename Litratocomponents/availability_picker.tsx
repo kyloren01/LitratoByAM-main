@@ -8,12 +8,12 @@ function Datepicker() {
     router.push("/availability");
   };
   return (
-    <div className="flex flex-row gap-2">
+    <div className="flex flex-col items-center">
       <Image
         onClick={availability}
         width={40}
         height={40}
-        className="hover:cursor-pointer h-10 mt-2"
+        className="hover:cursor-pointer hover:scale-120 duration-500 h-10"
         src="/Icons/datepicker.png"
         alt="icon_img"
       />

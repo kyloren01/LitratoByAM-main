@@ -61,7 +61,7 @@ const ImageSlider = () => {
             key={index}
             src={image.src}
             alt={`image ${index}`}
-            className="rounded-[12px] hover:cursor-pointer"
+            className="rounded-[12px] hover:cursor-pointer hover:scale-105 duration-500"
             initial="center"
             animate={pos}
             variants={imageVariants}

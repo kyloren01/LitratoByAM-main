@@ -4,7 +4,6 @@ import LitratoBranding from "../../../Litratocomponents/Branding";
 import LitratoFooter from "../../../Litratocomponents/Footer";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { set } from "zod";
 
 export default function RegistrationPage() {
   const router = useRouter();
@@ -16,7 +15,11 @@ export default function RegistrationPage() {
     username: "",
     password: "",
     confirmPassword: "",
-    address: "",
+  region: "",
+  province: "",
+  city: "",
+  barangay: "",
+  postalCode: "",
     contact: "",
   });
 
@@ -41,7 +44,7 @@ export default function RegistrationPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/customer/register", {
+      const res = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({
@@ -51,7 +54,11 @@ export default function RegistrationPage() {
           lastname: form.lastname,
           birthdate: form.birthdate,
           sex: form.sex,
-          address: form.address,
+          region: form.region,
+          province: form.province,
+          city: form.city,
+          barangay: form.barangay,
+          postal_code: form.postalCode,
           contact: form.contact,
         }),
       });
@@ -177,18 +184,74 @@ export default function RegistrationPage() {
               />
             </label>
           </div>
-          <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-200">
-            <label>
-              Address:
-              <input
-                name="address"
-                value={form.address}
-                onChange={handleChange}
-                placeholder="Example St. 123"
-                type="text"
-                className="w-170 px-2 text-xl border-none outline-none bg-transparent"
-              />
-            </label>
+         <div className="flex flex-row"> 
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
+            <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-full">
+              <label>
+                Region:
+                <input
+                  name="region"
+                  value={form.region}
+                  onChange={handleChange}
+                  placeholder="Region XI"
+                  type="text"
+                  className="w-full px-2 text-xl border-none outline-none bg-transparent"
+                />
+              </label>
+            </div>
+            <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-full">
+              <label>
+                Province:
+                <input
+                  name="province"
+                  value={form.province}
+                  onChange={handleChange}
+                  placeholder="Davao del Sur"
+                  type="text"
+                  className="w-full px-2 text-xl border-none outline-none bg-transparent"
+                />
+              </label>
+            </div>
+            <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-full">
+              <label>
+                City/Town:
+                <input
+                  name="city"
+                  value={form.city}
+                  onChange={handleChange}
+                  placeholder="Davao City"
+                  type="text"
+                  className="w-full px-2 text-xl border-none outline-none bg-transparent"
+                />
+              </label>
+            </div>
+            <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-full">
+              <label>
+                Barangay:
+                <input
+                  name="barangay"
+                  value={form.barangay}
+                  onChange={handleChange}
+                  placeholder="33-D"
+                  type="text"
+                  className="w-full px-2 text-xl border-none outline-none bg-transparent"
+                />
+              </label>
+            </div>
+            <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md md:col-span-1 w-full">
+              <label>
+                Postal Code:
+                <input
+                  name="postalCode"
+                  value={form.postalCode}
+                  onChange={handleChange}
+                  placeholder="8000"
+                  type="text"
+                  className="w-full px-2 text-xl border-none outline-none bg-transparent"
+                />
+              </label>
+            </div>
+          </div>
           </div>
           <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-200">
             <label>
