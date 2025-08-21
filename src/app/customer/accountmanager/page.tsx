@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000/api/auth/getProfile";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
 
 export default function AccountManagementPage() {
   const router = useRouter();
@@ -16,18 +15,22 @@ export default function AccountManagementPage() {
     url?: string;
   } | null>(null);
 
-  const [personalForm, setPersonalForm] = useState({
+  const [originalForm, setOriginalForm] = useState({
     Firstname: "",
     Lastname: "",
     Birthdate: "",
     Sex: "",
     ContactNumber: "",
-    Region:"",
-    Province:"",
-    City:"",
-    Barangay:"",
+    Region: "",
+    Province: "",
+    City: "",
+    Barangay: "",
     PostalCode: "",
   });
+
+const [personalForm, setPersonalForm] = useState(originalForm);
+
+  const [saving, setSaving] = useState(false);
 
 
 
@@ -60,13 +63,14 @@ export default function AccountManagementPage() {
     { label: "Confirm Password", type: "password" },
   ];
 
+  // Load profile data on mount
 useEffect(() => {
   const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
   if (!token) return; // no token, skip
 
   const load = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/auth/getProfile`, {
+  const res = await fetch(`${API_BASE}/api/auth/getProfile`, {
         headers: { Authorization: `Bearer ${token}` }, // add Bearer prefix
       });
 
@@ -86,35 +90,34 @@ useEffect(() => {
   load();
 }, [router]);
 
+// Fetch user profile
 useEffect(() => {
   const token = localStorage.getItem("access_token");
 
-  fetch("http://localhost:5000/api/auth/getProfile", {
+  fetch(`${API_BASE}/api/auth/getProfile`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // ✅ attach token
+      Authorization: `Bearer ${token}`,
     },
   })
-    .then((res) => {
-      if (!res.ok) throw new Error("Failed to fetch profile");
-      return res.json();
-    })
+    .then((res) => res.json())
     .then((data) => {
-      const { firstname, lastname, birthdate, sex, contact, region, province, city, barangay, postal_code } = data;
-     
-      setPersonalForm({
-        Firstname: firstname || "",
-        Lastname: lastname || "",
-        Birthdate: birthdate || "",
-        Sex: sex || "",
-        ContactNumber: contact || "",
-        Region: region || "",
-        Province: province || "",
-        City: city || "",
-        Barangay: barangay || "",
-        PostalCode: postal_code || "",
-      });
+      const formData = {
+        Firstname: data.firstname || "",
+        Lastname: data.lastname || "",
+        Birthdate: data.birthdate || "",
+        Sex: data.sex || "",
+        ContactNumber: data.contact || "",
+        Region: data.region || "",
+        Province: data.province || "",
+        City: data.city || "",
+        Barangay: data.barangay || "",
+        PostalCode: data.postal_code || "",
+      };
+
+      setOriginalForm(formData);   // ✅ keep a clean copy
+      setPersonalForm(formData);   // ✅ editable copy
     })
     .catch((err) => console.error("Error fetching profile:", err));
 }, []);
@@ -153,11 +156,83 @@ function formatReadableDate(isoString: string): string {
           ) : null}
           <div className="flex flex-row gap-6">
             <button
-              onClick={() => setIsEditable((prev) => !prev)}
+              onClick={() => {
+                if (isEditable) {
+                  // Cancel → reset form
+                  setPersonalForm(originalForm);
+                  setIsEditable(false);
+                } else {
+                  // Edit mode
+                  setIsEditable(true);
+                }
+              }}
               className="bg-litratoblack rounded py-2 px-4 text-white"
             >
               {isEditable ? "Cancel Edit" : "Edit Profile"}
             </button>
+            {isEditable && (
+  <button
+    onClick={async () => {
+      setSaving(true);
+      try {
+        const token = localStorage.getItem("access_token");
+        const payload = {
+          firstname: personalForm.Firstname,
+          lastname: personalForm.Lastname,
+          birthdate: personalForm.Birthdate,
+          sex: personalForm.Sex,
+          contact: personalForm.ContactNumber,
+          region: personalForm.Region,
+          province: personalForm.Province,
+          city: personalForm.City,
+          barangay: personalForm.Barangay,
+          postal_code: personalForm.PostalCode,
+        };
+
+        const res = await fetch(`${API_BASE}/api/auth/updateProfile`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) throw new Error("Failed to save");
+        const data = await res.json();
+
+        // Update both states after saving
+        const updated = {
+          Firstname: data.user?.firstname ?? personalForm.Firstname,
+          Lastname: data.user?.lastname ?? personalForm.Lastname,
+          Birthdate: data.user?.birthdate ?? personalForm.Birthdate,
+          Sex: data.user?.sex ?? personalForm.Sex,
+          ContactNumber: data.user?.contact ?? personalForm.ContactNumber,
+          Region: data.user?.region ?? personalForm.Region,
+          Province: data.user?.province ?? personalForm.Province,
+          City: data.user?.city ?? personalForm.City,
+          Barangay: data.user?.barangay ?? personalForm.Barangay,
+          PostalCode: data.user?.postal_code ?? personalForm.PostalCode,
+        };
+
+        setOriginalForm(updated);
+        setPersonalForm(updated);
+        setIsEditable(false);
+      } catch (e) {
+        console.error(e);
+        alert("Failed to save changes");
+      } finally {
+        setSaving(false);
+      }
+    }}
+    className={`rounded py-2 px-4 text-white ${
+      saving ? "bg-gray-500" : "bg-green-600 hover:bg-green-700"
+    }`}
+    disabled={saving}
+  >
+    {saving ? "Saving..." : "Save Changes"}
+  </button>
+)}
             <div className="bg-litratoblack rounded-full py-2 px-4 text-white">
               Change Password
             </div>
@@ -173,7 +248,7 @@ function formatReadableDate(isoString: string): string {
       type={field.type}
       value={
         field.key === "Birthdate" && personalForm.Birthdate
-          ? formatReadableDate(personalForm.Birthdate) // 👈 format only for birthdate
+          ? (isEditable ? personalForm.Birthdate : formatReadableDate(personalForm.Birthdate))
           : (personalForm as any)[field.key] ?? ""
       }
       onChange={(e) =>
@@ -210,7 +285,7 @@ function formatReadableDate(isoString: string): string {
         ))}
       </div>
 
-
+      
         <p className="text-2xl">Account Settings</p>
         <div className="flex flex-col gap-4 w-1/3">
           {accountSettings.map((field) => (

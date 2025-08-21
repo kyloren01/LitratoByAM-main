@@ -121,3 +121,37 @@ exports.getProfile = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// Update current user's profile
+exports.updateProfile = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const allowed = [
+      'firstname',
+      'lastname',
+      'birthdate',
+      'sex',
+      'contact',
+      'region',
+      'province',
+      'city',
+      'barangay',
+      'postal_code',
+    ];
+
+    const payload = {};
+    for (const key of allowed) {
+      if (key in req.body) payload[key] = req.body[key];
+    }
+
+    if (Object.keys(payload).length === 0) {
+      return res.status(400).json({ message: 'No updatable fields provided' });
+    }
+
+    const updated = await userModel.updateUserProfile(userId, payload);
+    return res.json({ message: 'Profile updated', user: updated });
+  } catch (error) {
+    console.error('Update Profile Error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

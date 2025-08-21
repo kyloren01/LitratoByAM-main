@@ -76,5 +76,37 @@ module.exports = {
     initUserTable,
     findUserById,
     findUserByUsername,
-    createUser
+    createUser,
+    updateUserProfile
 };
+
+// Update profile helper
+async function updateUserProfile(id, fields) {
+    const allowed = [
+        'firstname',
+        'lastname',
+        'birthdate',
+        'sex',
+        'contact',
+        'region',
+        'province',
+        'city',
+        'barangay',
+        'postal_code'
+    ];
+
+    const keys = Object.keys(fields).filter(k => allowed.includes(k));
+    if (keys.length === 0) {
+        const res = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+        return res.rows[0];
+    }
+
+    const setClauses = keys.map((k, idx) => `${k} = $${idx + 2}`); // start from $2, $1=id
+    const values = [id, ...keys.map(k => fields[k])];
+
+    const result = await pool.query(
+        `UPDATE users SET ${setClauses.join(', ')} WHERE id = $1 RETURNING *`,
+        values
+    );
+    return result.rows[0];
+}
