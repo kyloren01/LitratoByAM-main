@@ -15,11 +15,11 @@ export default function RegistrationPage() {
     username: "",
     password: "",
     confirmPassword: "",
-  region: "",
-  province: "",
-  city: "",
-  barangay: "",
-  postalCode: "",
+    region: "",
+    province: "",
+    city: "",
+    barangay: "",
+    postalCode: "",
     contact: "",
   });
 
@@ -73,6 +73,127 @@ export default function RegistrationPage() {
     }
   };
 
+  const fieldRows = [
+    [
+      {
+        name: "firstname",
+        label: "Firstname:",
+        placeholder: "Juan",
+        type: "text",
+        className: "w-70 px-2 text-xl border-none outline-none bg-transparent",
+        containerClass: "bg-[#D9D9D9] p-2 rounded-lg shadow-md w-96",
+      },
+      {
+        name: "lastname",
+        label: "Lastname:",
+        placeholder: "Dela Cruz",
+        type: "text",
+        className: "w-70 px-2 text-xl border-none outline-none bg-transparent",
+        containerClass: "bg-[#D9D9D9] p-2 rounded-lg shadow-md w-96",
+      },
+    ],
+    [
+      {
+        name: "birthdate",
+        label: "Birthdate:",
+        placeholder: "MM/DD/YYYY",
+        type: "date",
+        className: "w-70 px-2 text-xl border-none outline-none bg-transparent",
+        containerClass: "bg-[#D9D9D9] p-2 rounded-lg shadow-md w-96",
+      },
+      {
+        name: "sex",
+        label: "Sex:",
+        placeholder: "Male/Female",
+        type: "text",
+        className: "w-70 px-2 text-xl border-none outline-none bg-transparent",
+        containerClass: "bg-[#D9D9D9] p-2 rounded-lg shadow-md w-96",
+      },
+    ],
+  ];
+
+  const singleFields = [
+    {
+      name: "username",
+      label: "Username:",
+      placeholder: "example@gmail.com",
+      type: "text",
+      className: "w-170 px-2 text-xl border-none outline-none bg-transparent",
+      containerClass: "bg-[#D9D9D9] p-2 rounded-lg shadow-md w-200",
+    },
+    {
+      name: "password",
+      label: "Password:",
+      placeholder: "Example1234",
+      type: "password",
+      className: "w-170 px-2 text-xl border-none outline-none bg-transparent",
+      containerClass: "bg-[#D9D9D9] p-2 rounded-lg shadow-md w-200",
+    },
+    {
+      name: "confirmPassword",
+      label: "Confirm Password:",
+      placeholder: "Example1234",
+      type: "password",
+      className: "w-160 px-2 text-xl border-none outline-none bg-transparent",
+      containerClass: "bg-[#D9D9D9] p-2 rounded-lg shadow-md w-200",
+    },
+  ];
+
+  const regionProvinceFields = [
+    {
+      name: "region",
+      label: "Region:",
+      placeholder: "Region XI",
+      type: "text",
+      className: "w-60 px-2 text-xl border-none outline-none bg-transparent",
+      containerClass: "bg-[#D9D9D9] p-2 rounded-lg shadow-md w-94",
+    },
+    {
+      name: "province",
+      label: "Province:",
+      placeholder: "Davao del Sur",
+      type: "text",
+      className: "w-60 px-2 text-xl border-none outline-none bg-transparent",
+      containerClass: "bg-[#D9D9D9] p-2 rounded-lg shadow-md w-94",
+    },
+  ];
+
+  const cityFields = [
+    {
+      name: "city",
+      label: "City/Town:",
+      placeholder: "Davao City",
+      type: "text",
+      className: "w-30 px-2 text-xl border-none outline-none bg-transparent",
+      containerClass: "bg-[#D9D9D9] p-2 rounded-lg shadow-md w-60",
+    },
+    {
+      name: "barangay",
+      label: "Barangay:",
+      placeholder: "33-D",
+      type: "text",
+      className: "w-30 px-2 text-xl border-none outline-none bg-transparent",
+      containerClass: "bg-[#D9D9D9] p-2 rounded-lg shadow-md w-60",
+    },
+    {
+      name: "postalCode",
+      label: "Postal Code:",
+      placeholder: "8000",
+      type: "text",
+      className: "w-30 px-2 text-xl border-none outline-none bg-transparent",
+      containerClass: "bg-[#D9D9D9] p-2 rounded-lg shadow-md w-60",
+    },
+  ];
+
+  const contactField = {
+    name: "contact",
+    label: "Contact Number:",
+    placeholder: "09******123",
+    type: "text",
+    className: "w-150 px-2 text-xl border-none outline-none bg-transparent",
+    containerClass: "bg-[#D9D9D9] p-2 rounded-lg shadow-md w-200",
+  };
+
   return (
     <div>
       <section>
@@ -88,181 +209,90 @@ export default function RegistrationPage() {
         <LitratoBranding />
       </section>
       <form onSubmit={handleRegistered}>
-        <div className="flex flex-row justify-center gap-8 mt-8 ">
-          <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-96">
-            <label>
-              Firstname:
-              <input
-                name="firstname"
-                value={form.firstname}
-                onChange={handleChange}
-                placeholder="Juan"
-                type="text"
-                className="w-70 px-2 text-xl border-none outline-none bg-transparent"
-              />
-            </label>
+        {/* Map fieldRows for first two rows */}
+        {fieldRows.map((row, idx) => (
+          <div key={idx} className="flex flex-row justify-center gap-8 mt-4 ">
+            {row.map((field) => (
+              <div key={field.name} className={field.containerClass}>
+                <label>
+                  {field.label}
+                  <input
+                    name={field.name}
+                    value={form[field.name as keyof typeof form]}
+                    onChange={handleChange}
+                    placeholder={field.placeholder}
+                    type={field.type}
+                    className={field.className}
+                  />
+                </label>
+              </div>
+            ))}
           </div>
-          <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-96">
-            <label>
-              Lastname:
-              <input
-                name="lastname"
-                value={form.lastname}
-                onChange={handleChange}
-                placeholder="Dela Cruz"
-                type="text"
-                className="w-70 px-2 text-xl border-none outline-none bg-transparent"
-              />
-            </label>
-          </div>
-        </div>
-        <div className="flex flex-row justify-center gap-8 mt-4 ">
-          <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-96">
-            <label>
-              Birthdate:
-              <input
-                name="birthdate"
-                value={form.birthdate}
-                onChange={handleChange}
-                type="date"
-                className="w-70 px-2 text-xl border-none outline-none bg-transparent"
-                placeholder="MM/DD/YYYY"
-              />
-            </label>
-          </div>
-          <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-96">
-            <label>
-              Sex:
-              <input
-                name="sex"
-                value={form.sex}
-                onChange={handleChange}
-                placeholder="Male/Female"
-                type="text"
-                className="w-70 px-2 text-xl border-none outline-none bg-transparent"
-              />
-            </label>
-          </div>
-        </div>
+        ))}
+        {/* Map singleFields */}
         <div className="flex flex-col items-center mt-4 gap-y-4 mb-8">
-          <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-200">
+          {singleFields.map((field) => (
+            <div key={field.name} className={field.containerClass}>
+              <label>
+                {field.label}
+                <input
+                  name={field.name}
+                  value={form[field.name as keyof typeof form]}
+                  onChange={handleChange}
+                  placeholder={field.placeholder}
+                  type={field.type}
+                  className={field.className}
+                />
+              </label>
+            </div>
+          ))}
+          {/* Region/Province row */}
+          <div className="flex flex-row gap-12">
+            {regionProvinceFields.map((field) => (
+              <div key={field.name} className={field.containerClass}>
+                <label>
+                  {field.label}
+                  <input
+                    name={field.name}
+                    value={form[field.name as keyof typeof form]}
+                    onChange={handleChange}
+                    placeholder={field.placeholder}
+                    type={field.type}
+                    className={field.className}
+                  />
+                </label>
+              </div>
+            ))}
+          </div>
+          {/* City/Barangay/Postal row */}
+          <div className="flex flex-row gap-10">
+            {cityFields.map((field) => (
+              <div key={field.name} className={field.containerClass}>
+                <label>
+                  {field.label}
+                  <input
+                    name={field.name}
+                    value={form[field.name as keyof typeof form]}
+                    onChange={handleChange}
+                    placeholder={field.placeholder}
+                    type={field.type}
+                    className={field.className}
+                  />
+                </label>
+              </div>
+            ))}
+          </div>
+          {/* Contact field */}
+          <div className={contactField.containerClass}>
             <label>
-              Username:
+              {contactField.label}
               <input
-                name="username"
-                value={form.username}
+                name={contactField.name}
+                value={form[contactField.name as keyof typeof form]}
                 onChange={handleChange}
-                placeholder="example@gmail.com"
-                type="text"
-                className="w-170 px-2 text-xl border-none outline-none bg-transparent"
-              />
-            </label>
-          </div>
-          <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-200">
-            <label>
-              Password:
-              <input
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Example1234"
-                type="password"
-                className="w-170 px-2 text-xl border-none outline-none bg-transparent"
-              />
-            </label>
-          </div>
-          <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-200">
-            <label>
-              Confirm Password:
-              <input
-                name="confirmPassword"
-                value={form.confirmPassword}
-                onChange={handleChange}
-                placeholder="Example1234"
-                type="password"
-                className="w-160 px-2 text-xl border-none outline-none bg-transparent"
-              />
-            </label>
-          </div>
-         <div className="flex flex-row"> 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
-            <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-full">
-              <label>
-                Region:
-                <input
-                  name="region"
-                  value={form.region}
-                  onChange={handleChange}
-                  placeholder="Region XI"
-                  type="text"
-                  className="w-full px-2 text-xl border-none outline-none bg-transparent"
-                />
-              </label>
-            </div>
-            <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-full">
-              <label>
-                Province:
-                <input
-                  name="province"
-                  value={form.province}
-                  onChange={handleChange}
-                  placeholder="Davao del Sur"
-                  type="text"
-                  className="w-full px-2 text-xl border-none outline-none bg-transparent"
-                />
-              </label>
-            </div>
-            <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-full">
-              <label>
-                City/Town:
-                <input
-                  name="city"
-                  value={form.city}
-                  onChange={handleChange}
-                  placeholder="Davao City"
-                  type="text"
-                  className="w-full px-2 text-xl border-none outline-none bg-transparent"
-                />
-              </label>
-            </div>
-            <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-full">
-              <label>
-                Barangay:
-                <input
-                  name="barangay"
-                  value={form.barangay}
-                  onChange={handleChange}
-                  placeholder="33-D"
-                  type="text"
-                  className="w-full px-2 text-xl border-none outline-none bg-transparent"
-                />
-              </label>
-            </div>
-            <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md md:col-span-1 w-full">
-              <label>
-                Postal Code:
-                <input
-                  name="postalCode"
-                  value={form.postalCode}
-                  onChange={handleChange}
-                  placeholder="8000"
-                  type="text"
-                  className="w-full px-2 text-xl border-none outline-none bg-transparent"
-                />
-              </label>
-            </div>
-          </div>
-          </div>
-          <div className="bg-[#D9D9D9] p-2 rounded-lg shadow-md w-200">
-            <label>
-              Contact Number:
-              <input
-                name="contact"
-                value={form.contact}
-                onChange={handleChange}
-                placeholder="09******123"
-                type="text"
-                className="w-150 px-2 text-xl border-none outline-none bg-transparent"
+                placeholder={contactField.placeholder}
+                type={contactField.type}
+                className={contactField.className}
               />
             </label>
           </div>

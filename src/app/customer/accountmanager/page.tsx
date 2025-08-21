@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000/api/auth/getProfile";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
 
 export default function AccountManagementPage() {
   const router = useRouter();
@@ -16,25 +15,22 @@ export default function AccountManagementPage() {
     url?: string;
   } | null>(null);
 
-  const [personalForm, setPersonalForm] = useState({
+  const [originalForm, setOriginalForm] = useState({
     Firstname: "",
     Lastname: "",
     Birthdate: "",
     Sex: "",
     ContactNumber: "",
-    Region:"",
-    Province:"",
-    City:"",
-    Barangay:"",
+    Region: "",
+    Province: "",
+    City: "",
+    Barangay: "",
     PostalCode: "",
   });
 
+  const [personalForm, setPersonalForm] = useState(originalForm);
 
-
-
-
-
-
+  const [saving, setSaving] = useState(false);
 
   const personalData = [personalForm];
 
@@ -60,78 +56,80 @@ export default function AccountManagementPage() {
     { label: "Confirm Password", type: "password" },
   ];
 
-useEffect(() => {
-  const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-  if (!token) return; // no token, skip
+  // Load profile data on mount
+  useEffect(() => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("access_token")
+        : null;
+    if (!token) return; // no token, skip
 
-  const load = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/auth/getProfile`, {
-        headers: { Authorization: `Bearer ${token}` }, // add Bearer prefix
-      });
+    const load = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/getProfile`, {
+          headers: { Authorization: `Bearer ${token}` }, // add Bearer prefix
+        });
 
-      if (res.status === 401) {
-        try { localStorage.removeItem("access_token"); } catch {}
-        router.replace("/login");
-        return;
+        if (res.status === 401) {
+          try {
+            localStorage.removeItem("access_token");
+          } catch {}
+          router.replace("/login");
+          return;
+        }
+
+        const data = await res.json();
+        setProfile(data);
+      } catch (err) {
+        console.error("Profile fetch failed:", err);
       }
+    };
 
-      const data = await res.json();
-      setProfile(data);
-    } catch (err) {
-      console.error("Profile fetch failed:", err);
-    }
-  };
+    load();
+  }, [router]);
 
-  load();
-}, [router]);
+  // Fetch user profile
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
 
-useEffect(() => {
-  const token = localStorage.getItem("access_token");
-
-  fetch("http://localhost:5000/api/auth/getProfile", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // ✅ attach token
-    },
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error("Failed to fetch profile");
-      return res.json();
+    fetch(`${API_BASE}/api/auth/getProfile`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     })
-    .then((data) => {
-      const { firstname, lastname, birthdate, sex, contact, region, province, city, barangay, postal_code } = data;
-     
-      setPersonalForm({
-        Firstname: firstname || "",
-        Lastname: lastname || "",
-        Birthdate: birthdate || "",
-        Sex: sex || "",
-        ContactNumber: contact || "",
-        Region: region || "",
-        Province: province || "",
-        City: city || "",
-        Barangay: barangay || "",
-        PostalCode: postal_code || "",
-      });
-    })
-    .catch((err) => console.error("Error fetching profile:", err));
-}, []);
+      .then((res) => res.json())
+      .then((data) => {
+        const formData = {
+          Firstname: data.firstname || "",
+          Lastname: data.lastname || "",
+          Birthdate: data.birthdate || "",
+          Sex: data.sex || "",
+          ContactNumber: data.contact || "",
+          Region: data.region || "",
+          Province: data.province || "",
+          City: data.city || "",
+          Barangay: data.barangay || "",
+          PostalCode: data.postal_code || "",
+        };
 
+        setOriginalForm(formData); // ✅ keep a clean copy
+        setPersonalForm(formData); // ✅ editable copy
+      })
+      .catch((err) => console.error("Error fetching profile:", err));
+  }, []);
 
-function formatReadableDate(isoString: string): string {
-  const date = new Date(isoString);
+  function formatReadableDate(isoString: string): string {
+    const date = new Date(isoString);
 
-  // Format: "Aug 18 2003"
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-
+    // Format: "Aug 18 2003"
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
 
   return (
     <div className="h-screen p-4">
@@ -148,17 +146,94 @@ function formatReadableDate(isoString: string): string {
           <p className="text-black text-center text-3xl font-semibold">
             Welcome, {personalForm.Firstname} {personalForm.Lastname ?? "User"}!
           </p>
-          {profile?.email ? (
-            <p className="text-gray-600 text-sm">{profile.email}</p>
-          ) : null}
+          {/* {profile?.email ? (
+            <p className="text-gray-600 text-sm">Username: {profile.email}</p>
+          ) : null} */}
           <div className="flex flex-row gap-6">
-            <button
-              onClick={() => setIsEditable((prev) => !prev)}
-              className="bg-litratoblack rounded py-2 px-4 text-white"
+            <div
+              onClick={() => {
+                if (isEditable) {
+                  // Cancel -> reset form
+                  setPersonalForm(originalForm);
+                  setIsEditable(false);
+                } else {
+                  // Edit mode
+                  setIsEditable(true);
+                }
+              }}
+              className="bg-litratoblack rounded-full cursor-pointer py-2 px-4 text-white"
             >
               {isEditable ? "Cancel Edit" : "Edit Profile"}
-            </button>
-            <div className="bg-litratoblack rounded-full py-2 px-4 text-white">
+            </div>
+            {isEditable && (
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    const token = localStorage.getItem("access_token");
+                    const payload = {
+                      firstname: personalForm.Firstname,
+                      lastname: personalForm.Lastname,
+                      birthdate: personalForm.Birthdate,
+                      sex: personalForm.Sex,
+                      contact: personalForm.ContactNumber,
+                      region: personalForm.Region,
+                      province: personalForm.Province,
+                      city: personalForm.City,
+                      barangay: personalForm.Barangay,
+                      postal_code: personalForm.PostalCode,
+                    };
+
+                    const res = await fetch(
+                      `${API_BASE}/api/auth/updateProfile`,
+                      {
+                        method: "PUT",
+                        headers: {
+                          "Content-Type": "application/json",
+                          Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify(payload),
+                      }
+                    );
+
+                    if (!res.ok) throw new Error("Failed to save");
+                    const data = await res.json();
+
+                    // Update both states after saving
+                    const updated = {
+                      Firstname: data.user?.firstname ?? personalForm.Firstname,
+                      Lastname: data.user?.lastname ?? personalForm.Lastname,
+                      Birthdate: data.user?.birthdate ?? personalForm.Birthdate,
+                      Sex: data.user?.sex ?? personalForm.Sex,
+                      ContactNumber:
+                        data.user?.contact ?? personalForm.ContactNumber,
+                      Region: data.user?.region ?? personalForm.Region,
+                      Province: data.user?.province ?? personalForm.Province,
+                      City: data.user?.city ?? personalForm.City,
+                      Barangay: data.user?.barangay ?? personalForm.Barangay,
+                      PostalCode:
+                        data.user?.postal_code ?? personalForm.PostalCode,
+                    };
+
+                    setOriginalForm(updated);
+                    setPersonalForm(updated);
+                    setIsEditable(false);
+                  } catch (e) {
+                    console.error(e);
+                    alert("Failed to save changes");
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                className={`rounded py-2 px-4 text-white ${
+                  saving ? "bg-gray-500" : "bg-green-600 hover:bg-green-700"
+                }`}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
+            )}
+            <div className="bg-litratoblack rounded-full cursor-pointer py-2 px-4 text-white">
               Change Password
             </div>
           </div>
@@ -167,49 +242,55 @@ function formatReadableDate(isoString: string): string {
         <p className="text-2xl">Manage your account</p>
         <div className="flex flex-row gap-12 ">
           {personalInfo.map((field) => (
-  <div key={field.label} className="flex flex-col w-auto">
-    <label>{field.label}:</label>
-    <input
-      type={field.type}
-      value={
-        field.key === "Birthdate" && personalForm.Birthdate
-          ? formatReadableDate(personalForm.Birthdate) // 👈 format only for birthdate
-          : (personalForm as any)[field.key] ?? ""
-      }
-      onChange={(e) =>
-        setPersonalForm((prev) => ({ ...prev, [field.key]: e.target.value }))
-      }
-      disabled={!isEditable}
-      className={`w-full rounded-md px-3 py-2 text-sm focus:outline-none ${
-        isEditable
-          ? "bg-gray-200"
-          : "bg-gray-100 text-gray-400 cursor-not-allowed"
-      }`}
-    />
-  </div>
-))}
-
+            <div key={field.label} className="flex flex-col w-auto">
+              <label>{field.label}:</label>
+              <input
+                type={field.type}
+                value={
+                  field.key === "Birthdate" && personalForm.Birthdate
+                    ? isEditable
+                      ? personalForm.Birthdate
+                      : formatReadableDate(personalForm.Birthdate)
+                    : (personalForm as any)[field.key] ?? ""
+                }
+                onChange={(e) =>
+                  setPersonalForm((prev) => ({
+                    ...prev,
+                    [field.key]: e.target.value,
+                  }))
+                }
+                disabled={!isEditable}
+                className={`w-full rounded-md px-3 py-2 text-sm focus:outline-none ${
+                  isEditable
+                    ? "bg-gray-200"
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                }`}
+              />
+            </div>
+          ))}
         </div>
 
-       <div className="flex flex-row gap-12">
-        {addressInfo.map((field) => (
-          <div key={field.label} className="flex flex-col w-auto">
-            <label>{field.label}:</label>
-            <input
-              type={field.type}
-              value={personalForm[field.key] ?? ""}
-              onChange={(e) =>
-                setPersonalForm((prev) => ({ ...prev, [field.key]: e.target.value }))
-              }
-              readOnly={!isEditable}   // 🔑 only read-only, not fully disabled
-              className={`w-full rounded-md px-3 py-2 text-sm focus:outline-none ${
-                isEditable ? "bg-gray-200" : "bg-gray-100 text-gray-600"
-              }`}
-            />
-          </div>
-        ))}
-      </div>
-
+        <div className="flex flex-row gap-12">
+          {addressInfo.map((field) => (
+            <div key={field.label} className="flex flex-col w-auto">
+              <label>{field.label}:</label>
+              <input
+                type={field.type}
+                value={personalForm[field.key] ?? ""}
+                onChange={(e) =>
+                  setPersonalForm((prev) => ({
+                    ...prev,
+                    [field.key]: e.target.value,
+                  }))
+                }
+                readOnly={!isEditable} // 🔑 only read-only, not fully disabled
+                className={`w-full rounded-md px-3 py-2 text-sm focus:outline-none ${
+                  isEditable ? "bg-gray-200" : "bg-gray-100 text-gray-600"
+                }`}
+              />
+            </div>
+          ))}
+        </div>
 
         <p className="text-2xl">Account Settings</p>
         <div className="flex flex-col gap-4 w-1/3">

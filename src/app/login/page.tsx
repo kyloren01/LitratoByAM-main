@@ -13,68 +13,68 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleLogin = async () => {
-  try {
-    const res = await fetch("http://localhost:5000/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (res.ok) {
-      const data = await res.json();
-      console.log("Login response:", data);
+      if (res.ok) {
+        const data = await res.json();
+        console.log("Login response:", data);
 
-      // If backend sends "Bearer <token>", strip the prefix
-      const token = data.token.startsWith("Bearer ")
-        ? data.token.split(" ")[1]
-        : data.token;
+        // If backend sends "Bearer <token>", strip the prefix
+        const token = data.token.startsWith("Bearer ")
+          ? data.token.split(" ")[1]
+          : data.token;
 
-      try {
-        localStorage.setItem("access_token", token);
-      } catch {
-        toast.error("Failed to save access token. Please try again.");
-      }
-
-      // Either use data.role (if backend sends it) OR decode from token
-      let role = data.role;
-      if (!role) {
         try {
-          const decoded: any = jwtDecode(token);
-          role = decoded.role;
+          localStorage.setItem("access_token", token);
         } catch {
-          toast.error("Invalid token received.");
-          return;
+          toast.error("Failed to save access token. Please try again.");
         }
-      }
 
-      if (role === "admin") {
-        router.push("/admin");
-        toast.success("Welcome Admin!");
-      } else if (role === "customer") {
-        router.push("/customer/dashboard");
-        toast.success("Welcome Customer!");
-      } else {
-        router.push("/employee");
-        toast.success("Welcome Employee!");
-      }
-    } else {
-      let message = "Login failed";
-      try {
-        const errorData = await res.json();
-        if (res.status === 401) {
-          message = "Invalid username or password";
-        } else if (errorData?.message) {
-          message = errorData.message;
+        // Either use data.role (if backend sends it) OR decode from token
+        let role = data.role;
+        if (!role) {
+          try {
+            const decoded: any = jwtDecode(token);
+            role = decoded.role;
+          } catch {
+            toast.error("Invalid token received.");
+            return;
+          }
         }
-      } catch {}
-      toast.error(message);
+
+        if (role === "admin") {
+          router.push("/admin");
+          toast.success("Welcome Admin!");
+        } else if (role === "customer") {
+          router.push("/customer/dashboard");
+          toast.success("Welcome Customer!");
+        } else {
+          router.push("/employee");
+          toast.success("Welcome Employee!");
+        }
+      } else {
+        let message = "Login failed";
+        try {
+          const errorData = await res.json();
+          if (res.status === 401) {
+            message = "Invalid username or password";
+          } else if (errorData?.message) {
+            message = errorData.message;
+          }
+        } catch {}
+        toast.error(message);
+      }
+    } catch (e) {
+      toast.error("Unable to connect to server. Please try again later.");
     }
-  } catch (e) {
-    toast.error("Unable to connect to server. Please try again later.");
-  }
-};
+  };
 
   return (
     <div>
@@ -116,11 +116,13 @@ export default function LoginPage() {
         {/* Login Button */}
         <div
           onClick={handleLogin}
-          className="bg-litratoblack  text-white px-6 py-2 rounded-lg hover:cursor-pointer font-bold transition-all duration-200 hover:bg-black"
+          className="bg-litratoblack select-none text-white px-6 py-2 rounded-lg hover:cursor-pointer font-bold transition-all duration-200 hover:bg-black"
         >
           LOGIN
         </div>
-        <div>Don't have an account? <a href="/registration">Register</a></div>
+        <div>
+          Don't have an account? <a href="/registration">Register</a>
+        </div>
       </section>
 
       <LitratoFooter />

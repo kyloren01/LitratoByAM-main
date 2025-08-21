@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const userModel = require("../Model/userModel");
 
 exports.register = async (req, res) => {
-    try {
+  try {
     const {
       username,
       password,
@@ -19,21 +19,23 @@ exports.register = async (req, res) => {
       postal_code,
     } = req.body;
 
-        // Validate required fields
-        if (!username || !password) {
-            return res.status(400).json({ message: "Username and password are required" });
-        }
+    // Validate required fields
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ message: "Username and password are required" });
+    }
 
-        // Check if user exists
-        const existingUser = await userModel.findUserByUsername(username);
-        if (existingUser) {
-            return res.status(409).json({ message: "Username already exists" });
-        }
+    // Check if user exists
+    const existingUser = await userModel.findUserByUsername(username);
+    if (existingUser) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create user (role is required, set to 'customer')
+    // Create user (role is required, set to 'customer')
     const user = await userModel.createUser(
       username,
       hashedPassword,
@@ -50,14 +52,12 @@ exports.register = async (req, res) => {
       postal_code
     );
 
-        res.status(201).json({ message: "Registration successful", user });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Server error" });
-    }
+    res.status(201).json({ message: "Registration successful", user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
-
-
 
 exports.login = async (req, res) => {
   const { username, password } = req.body;
@@ -118,6 +118,39 @@ exports.getProfile = async (req, res) => {
     });
   } catch (error) {
     console.error("Profile Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+// Update current user's profile
+exports.updateProfile = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const allowed = [
+      "firstname",
+      "lastname",
+      "birthdate",
+      "sex",
+      "contact",
+      "region",
+      "province",
+      "city",
+      "barangay",
+      "postal_code",
+    ];
+
+    const payload = {};
+    for (const key of allowed) {
+      if (key in req.body) payload[key] = req.body[key];
+    }
+
+    if (Object.keys(payload).length === 0) {
+      return res.status(400).json({ message: "No updatable fields provided" });
+    }
+
+    const updated = await userModel.updateUserProfile(userId, payload);
+    return res.json({ message: "Profile updated", user: updated });
+  } catch (error) {
+    console.error("Update Profile Error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

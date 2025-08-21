@@ -11,7 +11,7 @@ const API_BASE =
   (process.env.NEXT_PUBLIC_API_BASE?.replace(/\/$/, "") ||
     "http://localhost:5000") + "/api/auth/getProfile";
 
-export default function BookingPage() {
+export default function ReschedulingPage() {
   const router = useRouter();
   const [isEditable, setIsEditable] = useState(false);
   const [personalForm, setPersonalForm] = useState({
@@ -98,7 +98,7 @@ export default function BookingPage() {
         </div>
         <p className="text-litratoblack text-center text-4xl font-semibold font-didone pt-4">
           Welcome, {personalForm.Firstname} {personalForm.Lastname}!<br />
-          Schedule a photobooth session with us!
+          Reschedule a photobooth session with us!
         </p>
       </div>
 
