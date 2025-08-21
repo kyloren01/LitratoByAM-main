@@ -48,7 +48,7 @@ const ImageSlider = () => {
   };
 
   return (
-    <div className="relative flex items-center flex-col justify-center h-[90vh] overflow-hidden bg-white">
+    <div className="relative flex items-center flex-col select-none justify-center h-[90vh] overflow-hidden bg-white">
       <div className="absolute left-0 top-0 h-full w-1/6 z-40 bg-gradient-to-r from-white/70 via-slate-100/50 to-transparent pointer-events-none" />
       <div className="absolute right-0 top-0 h-full w-1/6 z-40 bg-gradient-to-l from-white/70 via-slate-100/50 to-transparent pointer-events-none" />
 

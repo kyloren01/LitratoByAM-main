@@ -13,9 +13,7 @@ export default function HomePage() {
   const handleAvailableDate = () => {
     router.push("/availability");
   };
-  const handleRegistration = () => {
-    router.push("/registration");
-  };
+
   const handleLogin = () => {
     router.push("/login");
   };
@@ -33,12 +31,12 @@ export default function HomePage() {
           ></Image>
           <div className="absolute top-[-25] left-0 w-full h-full flex items-center justify-center z-10 gap-5 pl-48">
             <LitratoNavbar />
-            <div
+            <button
               onClick={handleLogin}
-              className="absolute top-[60] hover:scale-110 duration-500 right-60 bg-black text-white text-center font-semibold h-[45px] py-1 px-4 text-[20px] rounded-xl border-2 border-white hover:cursor-pointer shadow-md shadow-litratoblack"
+              className="absolute top-[60] hover:scale-110 duration-500 right-60 bg-black text-white text-center font-semibold h-[45px] py-1 px-4 text-[20px] rounded border-2 border-white hover:cursor-pointer shadow-md shadow-litratoblack"
             >
               LOGIN
-            </div>
+            </button>
           </div>
         </div>
         <LitratoBranding />
@@ -46,7 +44,6 @@ export default function HomePage() {
           <div onClick={handleAvailableDate}>
             <Datepicker />
           </div>
-          
         </div>
       </section>
       <div className=" bg-litratored h-2 mt-5 "></div>
@@ -94,7 +91,7 @@ export default function HomePage() {
           </p>
           <p className="text-xl">We are LITRATO, moments in memories.</p>
 
-          <div className="flex ml-24 hover:scale-110 duration-500 bg-litratoblack text-white w-40 py-8 justify-center items-center h-10 rounded-lg hover:cursor-pointer">
+          <div className="flex ml-24 hover:scale-110 duration-500 select-none bg-litratoblack text-white w-40 py-8 justify-center items-center h-10 rounded-lg hover:cursor-pointer">
             Explore More
           </div>
         </div>
@@ -161,7 +158,7 @@ export default function HomePage() {
           ></Image>
           <div
             onClick={handleLogin}
-            className="bg-litratoblack hover:scale-110 duration-500 text-white w-1/2 py-3 text-center rounded-xl hover:cursor-pointer self-center mt-20 font-bold"
+            className="bg-litratoblack hover:scale-110 select-none duration-500 text-white w-1/2 py-3 text-center rounded-xl hover:cursor-pointer self-center mt-20 font-bold"
           >
             {" "}
             BOOK NOW{" "}

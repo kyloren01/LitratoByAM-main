@@ -2,7 +2,7 @@
 
 function LitratoBranding() {
   return (
-    <div className="flex flex-col justify-self-center items-center font-serif">
+    <div className="flex flex-col justify-self-center items-center select-none font-serif">
       <div className="flex flex-col items-center leading-none">
         <p className="text-[98px]">LITRATO</p>
         <p className="text-[58px] ">BYAM</p>

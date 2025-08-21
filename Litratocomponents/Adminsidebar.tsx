@@ -48,18 +48,18 @@ export default function LitratoSidebar({
     {
       label: "Dashboard",
       icon: "/Icons/dashboard.png",
-      path: "/customer/dashboard",
+      path: "/admin/AdminDashboard",
     },
-    { label: "Booking", icon: "/Icons/booking.png", path: "/customer/booking" },
     {
-      label: "Rescheduling",
-      icon: "/Icons/rescheduling.png",
-      path: "/customer/rescheduling",
+      label: "Manage Bookings",
+      icon: "/Icons/booking.png",
+      path: "/admin/BookingManagement",
     },
+
     {
       label: "Manage Account",
       icon: "/Icons/person.png",
-      path: "/customer/accountmanager",
+      path: "/admin/AccountManager",
     },
   ];
 
@@ -147,18 +147,18 @@ export default function LitratoSidebar({
                 Are you sure you want to logout?
               </p>
               <div className="flex gap-4">
-                <div
+                <button
                   onClick={confirmLogout}
-                  className="bg-litratoblack hover:scale-110 duration-500 text-white px-4 py-2 rounded-full hover:bg-red-600"
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                 >
                   Logout
-                </div>
-                <div
+                </button>
+                <button
                   onClick={cancelLogout}
-                  className="bg-gray-300 hover:scale-110 duration-500 text-gray-800 px-4 py-2 rounded-full hover:bg-gray-400"
+                  className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
                 >
                   Cancel
-                </div>
+                </button>
               </div>
             </div>
           </div>
@@ -196,23 +196,13 @@ export default function LitratoSidebar({
             }`}
             aria-hidden={isOpen}
           >
-            <div className="relative w-full h-full flex items-center justify-center">
-              <div
-                className={`relative transition-all duration-500 flex items-center justify-center ${
-                  isOpen
-                    ? "w-full h-full rounded-none overflow-visible"
-                    : "w-14 h-14 rounded-full overflow-hidden"
-                }`}
-              >
-                <Image
-                  src="/Icons/litratoicon.png"
-                  alt="Litrato Icon"
-                  fill
-                  className={`transition-transform duration-500 ease-in-out hover:scale-110 ${
-                    isOpen ? "object-contain" : "object-cover"
-                  }`}
-                />
-              </div>
+            <div className="relative w-full h-full">
+              <Image
+                src="/Icons/litratoicon.png"
+                alt="Litrato Icon"
+                fill
+                className="object-contain transition-transform duration-500 ease-in-out hover:scale-110"
+              />
             </div>
           </div>
         </div>

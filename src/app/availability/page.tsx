@@ -31,13 +31,13 @@ export default function AvailabilityPage() {
       <div className="flex flex-row justify-center gap-8 my-8 ">
         <div
           onClick={handleBack}
-          className="bg-[#878787] text-litratoblack px-4 py-2 w-28 text-center rounded-lg hover:cursor-pointer font-bold"
+          className="bg-[#878787] select-none text-litratoblack px-4 py-2 w-28 text-center rounded-lg hover:cursor-pointer font-bold"
         >
           Back
         </div>
         <div
           onClick={handleLogin}
-          className="bg-litratoblack text-white px-4 py-2 w-28 text-center rounded-lg hover:cursor-pointer font-bold"
+          className="bg-litratoblack select-none text-white px-4 py-2 w-28 text-center rounded-lg hover:cursor-pointer font-bold"
         >
           LOGIN
         </div>

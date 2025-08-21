@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import LitratoSidebar from "./sidebar";
+import AdminSidebar from "./Adminsidebar";
 
-export default function CustomerLayoutShell({
+export default function AdminLayoutShell({
   children,
 }: {
   children: React.ReactNode;
@@ -23,7 +23,7 @@ export default function CustomerLayoutShell({
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <div className="fixed left-0 top-0 h-full z-20">
-        <LitratoSidebar isOpen={open} onToggle={setOpen} />
+        <AdminSidebar isOpen={open} onToggle={setOpen} />
       </div>
 
       {/* Main content: animate margin-left as sidebar width changes */}

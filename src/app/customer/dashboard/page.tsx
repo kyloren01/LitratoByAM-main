@@ -1,14 +1,74 @@
 "use client";
-import Image from "next/image";
 import { HiOutlineExternalLink, HiOutlinePlusCircle } from "react-icons/hi";
 import { FaRegFileAlt } from "react-icons/fa";
-import LitratoSidebar from "../../../../Litratocomponents/sidebar";
-import PromoCard from "../../../../Litratocomponents/Service_Card";
-import Calendar from "../../../../Litratocomponents/LitratoCalendar";
-import Timepicker from "../../../../Litratocomponents/Timepicker";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+const API_BASE =
+  (process.env.NEXT_PUBLIC_API_BASE?.replace(/\/$/, "") ||
+    "http://localhost:5000") + "/api/auth/getProfile";
+
 export default function DashboardPage() {
+  const router = useRouter();
+  const [isEditable, setIsEditable] = useState(false);
+  const [personalForm, setPersonalForm] = useState({
+    Firstname: "",
+    Lastname: "",
+  });
+
+  const [profile, setProfile] = useState<{
+    username: string;
+    email: string;
+    role: string;
+    url?: string;
+    firstname?: string;
+    lastname?: string;
+  } | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+    const ac = new AbortController();
+
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          signal: ac.signal,
+        });
+
+        if (res.status === 401) {
+          try {
+            localStorage.removeItem("access_token");
+          } catch {}
+          router.replace("/login");
+          return;
+        }
+        if (!res.ok) throw new Error("Failed to fetch profile");
+
+        const data = await res.json();
+        setProfile(data);
+        setPersonalForm({
+          Firstname: data.firstname || "",
+          Lastname: data.lastname || "",
+        });
+      } catch (err: any) {
+        if (err?.name === "AbortError") return;
+        toast.error("Error fetching profile");
+      }
+    })();
+
+    return () => ac.abort();
+  }, [router]);
+
   const Carddetails = [
     { name: "Approved", content: "7" },
     { name: "Declined", content: "3" },
@@ -40,6 +100,7 @@ export default function DashboardPage() {
       package: "The Hanz",
       place: "Beach Resort",
       paymentStatus: "Paid",
+      action: ["Cancel", "Reschedule"],
     },
     {
       name: "Mary & John Wedding",
@@ -49,6 +110,7 @@ export default function DashboardPage() {
       package: "The Hanz",
       place: "Beach Resort",
       paymentStatus: "Paid",
+      action: ["Cancel", "Reschedule"],
     },
   ];
   return (
@@ -57,7 +119,9 @@ export default function DashboardPage() {
       {/* Dashboad Section */}
       <div>
         <div className="flex flex-col gap-8 mt-12">
-          <h1>Hello, Valued Customer!</h1>
+          <h1>
+            Hello, {personalForm.Firstname} {personalForm.Lastname}!
+          </h1>
           <div className="flex flex-col">
             <h5>Quick Actions</h5>
             <div className="flex flex-row gap-6">
@@ -101,7 +165,7 @@ export default function DashboardPage() {
             <div className="max-h-72 overflow-y-auto rounded-t-xl">
               <table className="w-full overflow-hidden">
                 <thead>
-                  <tr className="font-serif bg-gray-300">
+                  <tr className=" bg-gray-300">
                     {tabletitles.map((title, i) => (
                       <th
                         className={`px-4 py-2 text-left ${
@@ -118,7 +182,7 @@ export default function DashboardPage() {
                 </thead>
                 <tbody>
                   {tabledata.map((data, i) => (
-                    <tr className="text-left bg-gray-100" key={i}>
+                    <tr className="text-left bg-gray-100 " key={i}>
                       <td className="px-4 py-2 text-left">{data.name}</td>
                       <td className="px-4 py-2 text-left">{data.date}</td>
                       <td className="px-4 py-2 text-left">{data.startTime}</td>
@@ -128,12 +192,20 @@ export default function DashboardPage() {
                       <td className="px-4 py-2 text-left">
                         {data.paymentStatus}
                       </td>
-                      <td>
-                        <select className="px-4 py-2">
-                          <option></option>
-                          <option>Reschedule</option>
-                          <option>Cancel</option>
-                        </select>
+                      <td
+                        className="
+                      px-4 py-2 text-left flex gap-2"
+                      >
+                        {Array.isArray(data.action) && (
+                          <>
+                            <button className="bg-litratoblack text-white rounded px-2">
+                              {data.action[0]}
+                            </button>
+                            <button className="bg-litratored text-white rounded px-2">
+                              {data.action[1]}
+                            </button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   ))}

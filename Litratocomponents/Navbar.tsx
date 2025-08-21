@@ -9,28 +9,32 @@ function LitratoNavbar() {
 
   return (
     <div>
-      <div className="fixed top-[36px] left-1/2 transform -translate-x-1/2 w-[710px] h-[45px] border-litratoblack border-2 bg-white z-50 rounded-xl flex justify-around pt-[13px] items-center font-semibold text-[20px] shadow-md shadow-litratoblack">
+      <div className="fixed top-[36px] left-1/2 transform -translate-x-1/2 w-[710px] h-[45px] border-litratoblack border-2 bg-white z-50 rounded flex justify-around pt-[13px] items-center font-semibold text-[20px] shadow-md shadow-litratoblack">
         <p
           onClick={() => scrollToSection("home")}
-          className="cursor-pointer text-litratoblack"
+          tabIndex={-1}
+          className="cursor-pointer text-litratoblack select-none"
         >
           Home
         </p>
         <p
           onClick={() => scrollToSection("about")}
-          className="cursor-pointer text-litratoblack"
+          tabIndex={-1}
+          className="cursor-pointer text-litratoblack select-none"
         >
           About
         </p>
         <p
           onClick={() => scrollToSection("events")}
-          className="cursor-pointer text-litratoblack"
+          tabIndex={-1}
+          className="cursor-pointer text-litratoblack select-none"
         >
           Events
         </p>
         <p
           onClick={() => scrollToSection("services")}
-          className="cursor-pointer text-litratoblack"
+          tabIndex={-1}
+          className="cursor-pointer text-litratoblack select-none"
         >
           Services
         </p>

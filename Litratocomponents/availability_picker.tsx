@@ -8,7 +8,7 @@ function Datepicker() {
     router.push("/availability");
   };
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center ">
       <Image
         onClick={availability}
         width={40}
