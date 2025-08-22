@@ -17,3 +17,22 @@ Content-Type: application/json
   "postal_code": "8000"
 
 }
+
+### Login
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "johndoe@example.com",
+  "password": "password123"
+}
+
+### Change Password
+PUT http://localhost:5000/api/auth/updatePassword
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "oldPassword": "password123",
+  "newPassword": "newpassword456"
+}

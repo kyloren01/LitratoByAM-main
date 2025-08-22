@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -7,7 +8,11 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
 
 export default function AccountManagementPage() {
   const router = useRouter();
+
+  // ✅ Toggle between read-only and editable profile
   const [isEditable, setIsEditable] = useState(false);
+
+  // ✅ User profile data (basic info)
   const [profile, setProfile] = useState<{
     username: string;
     email: string;
@@ -15,6 +20,7 @@ export default function AccountManagementPage() {
     url?: string;
   } | null>(null);
 
+  // ✅ Default structure for user profile data
   const [originalForm, setOriginalForm] = useState({
     Firstname: "",
     Lastname: "",
@@ -28,12 +34,23 @@ export default function AccountManagementPage() {
     PostalCode: "",
   });
 
+  // ✅ Form for handling password changes
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  // ✅ Track password change process
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  // ✅ Editable version of personal data
   const [personalForm, setPersonalForm] = useState(originalForm);
 
+  // ✅ Track when saving profile
   const [saving, setSaving] = useState(false);
 
-  const personalData = [personalForm];
-
+  // 🔑 Personal details fields
   const personalInfo = [
     { label: "First Name", type: "text", key: "Firstname" },
     { label: "Last Name", type: "text", key: "Lastname" },
@@ -42,6 +59,7 @@ export default function AccountManagementPage() {
     { label: "Contact Number", type: "text", key: "ContactNumber" },
   ] as const;
 
+  // 🔑 Address fields
   const addressInfo = [
     { label: "Region", type: "text", key: "Region" },
     { label: "Province", type: "text", key: "Province" },
@@ -50,30 +68,33 @@ export default function AccountManagementPage() {
     { label: "Postal Code", type: "text", key: "PostalCode" },
   ] as const;
 
+  // 🔑 Account settings fields (passwords)
   const accountSettings = [
     { label: "Old Password", type: "password" },
     { label: "New Password", type: "password" },
     { label: "Confirm Password", type: "password" },
   ];
 
-  // Load profile data on mount
+  /**
+   * ✅ Load profile data when component mounts
+   */
   useEffect(() => {
     const token =
       typeof window !== "undefined"
         ? localStorage.getItem("access_token")
         : null;
-    if (!token) return; // no token, skip
+
+    if (!token) return;
 
     const load = async () => {
       try {
         const res = await fetch(`${API_BASE}/api/auth/getProfile`, {
-          headers: { Authorization: `Bearer ${token}` }, // add Bearer prefix
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (res.status === 401) {
-          try {
-            localStorage.removeItem("access_token");
-          } catch {}
+          // If unauthorized, clear token and redirect to login
+          localStorage.removeItem("access_token");
           router.replace("/login");
           return;
         }
@@ -88,7 +109,9 @@ export default function AccountManagementPage() {
     load();
   }, [router]);
 
-  // Fetch user profile
+  /**
+   * ✅ Fetch detailed user profile to fill form
+   */
   useEffect(() => {
     const token = localStorage.getItem("access_token");
 
@@ -114,16 +137,17 @@ export default function AccountManagementPage() {
           PostalCode: data.postal_code || "",
         };
 
-        setOriginalForm(formData); // ✅ keep a clean copy
-        setPersonalForm(formData); // ✅ editable copy
+        setOriginalForm(formData); // store clean copy
+        setPersonalForm(formData); // editable copy
       })
       .catch((err) => console.error("Error fetching profile:", err));
   }, []);
 
+  /**
+   * ✅ Helper function to display dates nicely
+   */
   function formatReadableDate(isoString: string): string {
     const date = new Date(isoString);
-
-    // Format: "Aug 18 2003"
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -134,7 +158,9 @@ export default function AccountManagementPage() {
   return (
     <div className="h-screen p-4">
       <div className="flex flex-col p-4 justify-center gap-4">
+        {/* ================= Profile Section ================= */}
         <div className="flex flex-col justify-center gap-2 items-center">
+          {/* Profile picture */}
           <div className="flex bg-black h-30 w-30 rounded-full relative">
             <Image
               src={"/Images/hanz.png"}
@@ -143,21 +169,23 @@ export default function AccountManagementPage() {
               className="rounded-full"
             />
           </div>
+
+          {/* Welcome text */}
           <p className="text-black text-center text-3xl font-semibold">
             Welcome, {personalForm.Firstname} {personalForm.Lastname ?? "User"}!
           </p>
-          {/* {profile?.email ? (
-            <p className="text-gray-600 text-sm">Username: {profile.email}</p>
-          ) : null} */}
+
+          {/* Profile action buttons */}
           <div className="flex flex-row gap-6">
+            {/* Edit / Cancel button */}
             <div
               onClick={() => {
                 if (isEditable) {
-                  // Cancel -> reset form
+                  // Cancel edit → reset form
                   setPersonalForm(originalForm);
                   setIsEditable(false);
                 } else {
-                  // Edit mode
+                  // Enable edit mode
                   setIsEditable(true);
                 }
               }}
@@ -165,6 +193,8 @@ export default function AccountManagementPage() {
             >
               {isEditable ? "Cancel Edit" : "Edit Profile"}
             </div>
+
+            {/* Save changes button (only visible in edit mode) */}
             {isEditable && (
               <button
                 onClick={async () => {
@@ -199,7 +229,7 @@ export default function AccountManagementPage() {
                     if (!res.ok) throw new Error("Failed to save");
                     const data = await res.json();
 
-                    // Update both states after saving
+                    // Update state after successful save
                     const updated = {
                       Firstname: data.user?.firstname ?? personalForm.Firstname,
                       Lastname: data.user?.lastname ?? personalForm.Lastname,
@@ -233,12 +263,64 @@ export default function AccountManagementPage() {
                 {saving ? "Saving..." : "Save Changes"}
               </button>
             )}
+
+            {/* Change password button (triggers password form) */}
             <div className="bg-litratoblack rounded-full cursor-pointer py-2 px-4 text-white">
               Change Password
             </div>
           </div>
         </div>
 
+        {/* ================= Change Password Button ================= */}
+        {isEditable && (
+          <button
+            onClick={async () => {
+              if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+                alert("New password and confirmation do not match");
+                return;
+              }
+
+              setChangingPassword(true);
+              try {
+                const token = localStorage.getItem("access_token");
+                const res = await fetch(`${API_BASE}/api/auth/changePassword`, {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({
+                    oldPassword: passwordForm.oldPassword,
+                    newPassword: passwordForm.newPassword,
+                  }),
+                });
+
+                const data = await res.json();
+                if (!res.ok)
+                  throw new Error(data.message || "Failed to change password");
+
+                alert("Password changed successfully!");
+                setPasswordForm({
+                  oldPassword: "",
+                  newPassword: "",
+                  confirmPassword: "",
+                });
+              } catch (err: any) {
+                alert(err.message || "Error changing password");
+              } finally {
+                setChangingPassword(false);
+              }
+            }}
+            className={`rounded py-2 px-4 text-white ${
+              changingPassword ? "bg-gray-500" : "bg-blue-600 hover:bg-blue-700"
+            }`}
+            disabled={changingPassword}
+          >
+            {changingPassword ? "Changing..." : "Change Password"}
+          </button>
+        )}
+
+        {/* ================= Personal Info Section ================= */}
         <p className="text-2xl">Manage your account</p>
         <div className="flex flex-row gap-12 ">
           {personalInfo.map((field) => (
@@ -270,6 +352,7 @@ export default function AccountManagementPage() {
           ))}
         </div>
 
+        {/* ================= Address Info Section ================= */}
         <div className="flex flex-row gap-12">
           {addressInfo.map((field) => (
             <div key={field.label} className="flex flex-col w-auto">
@@ -283,7 +366,7 @@ export default function AccountManagementPage() {
                     [field.key]: e.target.value,
                   }))
                 }
-                readOnly={!isEditable} // 🔑 only read-only, not fully disabled
+                readOnly={!isEditable}
                 className={`w-full rounded-md px-3 py-2 text-sm focus:outline-none ${
                   isEditable ? "bg-gray-200" : "bg-gray-100 text-gray-600"
                 }`}
@@ -292,6 +375,7 @@ export default function AccountManagementPage() {
           ))}
         </div>
 
+        {/* ================= Account Settings Section ================= */}
         <p className="text-2xl">Account Settings</p>
         <div className="flex flex-col gap-4 w-1/3">
           {accountSettings.map((field) => (
@@ -300,6 +384,23 @@ export default function AccountManagementPage() {
               <input
                 type={field.type}
                 placeholder="Enter here:"
+                value={
+                  field.label === "Old Password"
+                    ? passwordForm.oldPassword
+                    : field.label === "New Password"
+                    ? passwordForm.newPassword
+                    : passwordForm.confirmPassword
+                }
+                onChange={(e) =>
+                  setPasswordForm((prev) => ({
+                    ...prev,
+                    [field.label === "Old Password"
+                      ? "oldPassword"
+                      : field.label === "New Password"
+                      ? "newPassword"
+                      : "confirmPassword"]: e.target.value,
+                  }))
+                }
                 disabled={!isEditable}
                 className={`w-full rounded-md px-3 py-2 text-sm focus:outline-none ${
                   isEditable
