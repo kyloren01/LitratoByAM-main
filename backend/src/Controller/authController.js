@@ -1,6 +1,7 @@
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const userModel = require("../Model/userModel");
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const userModel = require('../Model/userModel')
+const { sendEmail } = require('../Util/sendEmail')
 
 exports.register = async (req, res) => {
   try {
@@ -17,29 +18,29 @@ exports.register = async (req, res) => {
       city,
       barangay,
       postal_code,
-    } = req.body;
+    } = req.body
 
     // Validate required fields
     if (!username || !password) {
       return res
         .status(400)
-        .json({ message: "Username and password are required" });
+        .json({ message: 'Username and password are required' })
     }
 
     // Check if user exists
-    const existingUser = await userModel.findUserByUsername(username);
+    const existingUser = await userModel.findUserByUsername(username)
     if (existingUser) {
-      return res.status(400).json({ message: "Username already exists" });
+      return res.status(400).json({ message: 'Username already exists' })
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10)
 
     // Create user (role is required, set to 'customer')
     const user = await userModel.createUser(
       username,
       hashedPassword,
-      "customer",
+      'customer',
       firstname,
       lastname,
       birthdate,
@@ -50,55 +51,106 @@ exports.register = async (req, res) => {
       city,
       barangay,
       postal_code
-    );
+    )
+    //email token for confirmation
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    })
 
-    res.status(201).json({ message: "Registration successful", user });
+    //save to database
+    await userModel.setVerificationToken(user.id, token)
+
+    //send email with link
+    const baseUrl = process.env.BACKEND_BASE_URL || 'http://localhost:5000'
+    const verifyUrl = `${baseUrl}/api/auth/verify?token=${token}`
+    // send confirmation email
+    await sendEmail(
+      username, // recipient (username is email in your schema)
+      'Confirm your Unifruity account',
+      `
+      <h1>Welcome to Unifruity! 🍊</h1>
+      <p>Hi ${firstname || ''},</p>
+      <p>Thanks for signing up. Please confirm your email address by clicking the link below:</p>
+      <p><a href="${verifyUrl}">Verify My Account</a></p>
+      <br>
+      <p>If you didn’t create this account, you can safely ignore this email.</p>
+      <p>– The Unifruity Team</p>
+      `
+    )
+
+    res.status(201).json({ message: 'Registration successful', user })
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error(err)
+    res.status(500).json({ message: 'Server error' })
   }
-};
+}
+
+exports.verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query
+    if (!token) return res.status(400).json({ message: 'Token is required' })
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+
+    const user = await userModel.findUserByToken(token)
+    if (!user)
+      return res.status(400).json({ message: 'Invalid or expired token' })
+
+    await userModel.verifyUser(decoded.id)
+
+    res.json({ message: 'Email verified successfully!' })
+  } catch (err) {
+    console.error(err)
+    res.status(400).json({ message: 'Invalid or expired token' })
+  }
+}
 
 exports.login = async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password } = req.body
   try {
-    const user = await userModel.findUserByUsername(username);
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+    const user = await userModel.findUserByUsername(username)
+    if (!user) return res.status(401).json({ message: 'Invalid credentials' })
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    if (!user.is_verified) {
+      return res
+        .status(403)
+        .json({ message: 'Please verify your email before logging in.' })
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password)
     if (!isMatch)
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ message: 'Invalid credentials' })
 
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+      { expiresIn: '1h' }
+    )
 
     res.json({
-      message: "Login successful",
+      message: 'Login successful',
       token: `Bearer ${token}`,
       role: user.role,
-    });
+    })
   } catch (error) {
-    console.error("Login Error:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error('Login Error:', error)
+    res.status(500).json({ message: 'Internal server error' })
   }
-};
+}
 
 exports.logout = (req, res) => {
-  res.json({ message: "Logout successful" });
-};
+  res.json({ message: 'Logout successful' })
+}
 
 exports.getProfile = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.id
   try {
-    const user = await userModel.findUserById(userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
-    let url = "/";
-    if (user.role === "admin") url = "/admin/dashboard";
-    else if (user.role === "employee") url = "/employee/dashboard";
-    else if (user.role === "customer") url = "/customer/dashboard";
+    const user = await userModel.findUserById(userId)
+    if (!user) return res.status(404).json({ message: 'User not found' })
+    let url = '/'
+    if (user.role === 'admin') url = '/admin/dashboard'
+    else if (user.role === 'employee') url = '/employee/dashboard'
+    else if (user.role === 'customer') url = '/customer/dashboard'
 
     return res.json({
       username: user.username,
@@ -115,42 +167,73 @@ exports.getProfile = async (req, res) => {
       lastname: user.lastname,
       birthdate: user.birthdate,
       sex: user.sex,
-    });
+    })
   } catch (error) {
-    console.error("Profile Error:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error('Profile Error:', error)
+    res.status(500).json({ message: 'Internal server error' })
   }
-};
+}
 // Update current user's profile
 exports.updateProfile = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.id
   try {
     const allowed = [
-      "firstname",
-      "lastname",
-      "birthdate",
-      "sex",
-      "contact",
-      "region",
-      "province",
-      "city",
-      "barangay",
-      "postal_code",
-    ];
+      'firstname',
+      'lastname',
+      'birthdate',
+      'sex',
+      'contact',
+      'region',
+      'province',
+      'city',
+      'barangay',
+      'postal_code',
+    ]
 
-    const payload = {};
+    const payload = {}
     for (const key of allowed) {
-      if (key in req.body) payload[key] = req.body[key];
+      if (key in req.body) payload[key] = req.body[key]
     }
 
     if (Object.keys(payload).length === 0) {
-      return res.status(400).json({ message: "No updatable fields provided" });
+      return res.status(400).json({ message: 'No updatable fields provided' })
     }
 
-    const updated = await userModel.updateUserProfile(userId, payload);
-    return res.json({ message: "Profile updated", user: updated });
+    const updated = await userModel.updateUserProfile(userId, payload)
+    return res.json({ message: 'Profile updated', user: updated })
   } catch (error) {
-    console.error("Update Profile Error:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error('Update Profile Error:', error)
+    res.status(500).json({ message: 'Internal server error' })
   }
-};
+}
+
+exports.changePassword = async (req, res) => {
+  const userId = req.user.id
+  const { oldPassword, newPassword } = req.body
+
+  if (!oldPassword || !newPassword) {
+    return res
+      .status(400)
+      .json({ message: 'Old and new passwords are required' })
+  }
+
+  try {
+    const user = await userModel.findUserById(userId)
+    if (!user) return res.status(404).json({ message: 'User not found' })
+    // compares the initial password and new password
+    const isMatch = await bcrypt.compare(oldPassword, user.password)
+    if (!isMatch)
+      return res.status(401).json({ message: 'Invalid old password' })
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10)
+    await userModel.updateUserPassword(userId, hashedNewPassword)
+
+    res.json({ message: 'Password changed successfully' })
+  } catch (error) {
+    console.error('Change Password Error:', error)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+// Alias for route compatibility if routes use updatePassword
+exports.updatePassword = exports.changePassword
