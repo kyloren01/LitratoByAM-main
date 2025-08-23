@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const userModel = require("../Model/userModel");
+const { sendEmail } = require("../Util/sendEmail");
 
 exports.register = async (req, res) => {
   try {
@@ -51,6 +52,31 @@ exports.register = async (req, res) => {
       barangay,
       postal_code
     );
+    //email token for confirmation
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    //save to database
+    await userModel.setVerificationToken(user.id, token);
+
+    //send email with link
+    const baseUrl = process.env.BACKEND_BASE_URL || "http://localhost:5000";
+    const verifyUrl = `${baseUrl}/api/auth/verify?token=${token}`;
+    // send confirmation email
+    await sendEmail(
+      username, // recipient (username is email in your schema)
+      "Confirm your Unifruity account",
+      `
+      <h1>Welcome to Unifruity! 🍊</h1>
+      <p>Hi ${firstname || ""},</p>
+      <p>Thanks for signing up. Please confirm your email address by clicking the link below:</p>
+      <p><a href="${verifyUrl}">Verify My Account</a></p>
+      <br>
+      <p>If you didn’t create this account, you can safely ignore this email.</p>
+      <p>– The Unifruity Team</p>
+      `
+    );
 
     res.status(201).json({ message: "Registration successful", user });
   } catch (err) {
@@ -59,11 +85,37 @@ exports.register = async (req, res) => {
   }
 };
 
+exports.verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ message: "Token is required" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await userModel.findUserByToken(token);
+    if (!user)
+      return res.status(400).json({ message: "Invalid or expired token" });
+
+    await userModel.verifyUser(decoded.id);
+
+    res.json({ message: "Email verified successfully!" });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ message: "Invalid or expired token" });
+  }
+};
+
 exports.login = async (req, res) => {
   const { username, password } = req.body;
   try {
     const user = await userModel.findUserByUsername(username);
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
+
+    if (!user.is_verified) {
+      return res
+        .status(403)
+        .json({ message: "Please verify your email before logging in." });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
@@ -154,3 +206,34 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.changePassword = async (req, res) => {
+  const userId = req.user.id;
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    return res
+      .status(400)
+      .json({ message: "Old and new passwords are required" });
+  }
+
+  try {
+    const user = await userModel.findUserById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    // compares the initial password and new password
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch)
+      return res.status(401).json({ message: "Invalid old password" });
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await userModel.updateUserPassword(userId, hashedNewPassword);
+
+    res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error("Change Password Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Alias for route compatibility if routes use updatePassword
+exports.updatePassword = exports.changePassword;

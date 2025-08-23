@@ -18,6 +18,8 @@ async function initUserTable() {
             city VARCHAR(100),
             barangay VARCHAR(100),
             postal_code VARCHAR(20),
+            is_verified BOOLEAN DEFAULT FALSE,
+            verification_token TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `);
@@ -73,14 +75,7 @@ async function createUser(
   return result.rows[0];
 }
 
-module.exports = {
-  initUserTable,
-  findUserById,
-  findUserByUsername,
-  createUser,
-  updateUserProfile,
-};
-
+//Edit Profile
 async function updateUserProfile(id, fields) {
   const allowed = [
     "firstname",
@@ -110,3 +105,45 @@ async function updateUserProfile(id, fields) {
   );
   return result.rows[0];
 }
+//Change Password
+async function updateUserPassword(id, newPassword) {
+  const result = await pool.query(
+    "UPDATE users SET password = $1 WHERE id = $2 RETURNING *",
+    [newPassword, id]
+  );
+  return result.rows[0];
+}
+
+//Confirmation Email
+async function setVerificationToken(userId, token) {
+  await pool.query("UPDATE users SET verification_token = $1 WHERE id = $2", [
+    token,
+    userId,
+  ]);
+}
+async function findUserByToken(token) {
+  const result = await pool.query(
+    "SELECT * FROM users WHERE verification_token = $1",
+    [token]
+  );
+  return result.rows[0];
+}
+async function verifyUser(userId) {
+  const result = await pool.query(
+    "UPDATE users SET is_verified = TRUE, verification_token = NULL WHERE id = $1 RETURNING *",
+    [userId]
+  );
+  return result.rows[0];
+}
+//end of confirmation email//
+module.exports = {
+  initUserTable,
+  findUserById,
+  findUserByUsername,
+  createUser,
+  updateUserProfile,
+  updateUserPassword,
+  setVerificationToken,
+  findUserByToken,
+  verifyUser,
+};

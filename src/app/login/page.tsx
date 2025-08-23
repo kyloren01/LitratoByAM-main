@@ -10,6 +10,9 @@ import { jwtDecode } from "jwt-decode";
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const handleLogin = async () => {
@@ -76,8 +79,63 @@ export default function LoginPage() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!forgotEmail) {
+      toast.error("Please enter your email.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      // Placeholder for API call to verify email and send reset instructions
+      // await fetch("/api/auth/request-reset", { ... });
+      toast.success("Verification email sent. Please check your inbox.");
+      setShowForgotModal(false);
+      setForgotEmail("");
+    } catch {
+      toast.error("Failed to send verification email.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div>
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-[350px] relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-black"
+              onClick={() => setShowForgotModal(false)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-xl font-bold mb-4 text-center">
+              Forgot Password
+            </h2>
+            <label className="block mb-2">
+              Enter your email for verification:
+            </label>
+            <input
+              type="email"
+              value={forgotEmail}
+              onChange={(e) => setForgotEmail(e.target.value)}
+              className="w-full bg-gray-200 rounded-md p-2 mb-4 focus:outline-none"
+              placeholder="Email address"
+              disabled={isSubmitting}
+            />
+            <button
+              onClick={handleForgotPassword}
+              className="bg-litratoblack text-white px-4 py-2 rounded w-full font-bold hover:bg-black transition-all"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Submitting..." : "Verify Email"}
+            </button>
+          </div>
+        </div>
+      )}
+
       <section>
         <div className="relative h-56 w-full mb-6">
           <Image
@@ -93,7 +151,7 @@ export default function LoginPage() {
 
       <section className="flex flex-col items-center justify-center mt-8 gap-y-4 mb-12">
         {/* Forms */}
-        <div className="flex flex-col w-[30%] gap-2">
+        <div className="flex flex-col w-[30%]">
           <div>
             <label className="block text-lg mb-1">Username:</label>
             <input
@@ -101,7 +159,7 @@ export default function LoginPage() {
               onChange={(e) => setUsername(e.target.value)}
               type="text"
               placeholder="Enter here:"
-              className="w-full bg-gray-200 rounded-md p-2 text-sm focus:outline-none"
+              className="w-full bg-gray-200 rounded-md p-2 text-sm mb-2 focus:outline-none"
             />
             <label className="block text-lg mb-1">Password:</label>
             <input
@@ -112,6 +170,16 @@ export default function LoginPage() {
               className="w-full bg-gray-200 rounded-md p-2 text-sm focus:outline-none"
             />
           </div>
+          <div className="text-right mt-2">
+            <button
+              type="button"
+              style={{ textDecoration: "none" }}
+              className="text-litratoblack hover bg-transparent border-none p-0 m-0 cursor-pointer"
+              onClick={() => setShowForgotModal(true)}
+            >
+              Forgot Password
+            </button>
+          </div>
         </div>
         {/* Login Button */}
         <div
@@ -121,7 +189,14 @@ export default function LoginPage() {
           LOGIN
         </div>
         <div>
-          Don't have an account? <a href="/registration">Register</a>
+          Don't have an account?{" "}
+          <a
+            href="/registration"
+            style={{ textDecoration: "none" }}
+            className="text-blue-600"
+          >
+            Register
+          </a>
         </div>
       </section>
 
