@@ -2,12 +2,17 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { is } from "date-fns/locale";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
 
 export default function AccountManagementPage() {
   const router = useRouter();
   const [isEditable, setIsEditable] = useState(false);
+  const [isPassEditable, setIsPassEditable] = useState(false);
+  const [isPassModalOpen, setIsPassModalOpen] = useState(false);
+
+  const handleSavePass = () => {};
   const [profile, setProfile] = useState<{
     username: string;
     email: string;
@@ -28,6 +33,11 @@ export default function AccountManagementPage() {
     PostalCode: "",
   });
 
+  const [passForm, setPassForm] = useState({
+    OldPassword: "",
+    NewPassword: "",
+    ConfirmPassword: "",
+  });
   const [personalForm, setPersonalForm] = useState(originalForm);
 
   const [saving, setSaving] = useState(false);
@@ -51,10 +61,10 @@ export default function AccountManagementPage() {
   ] as const;
 
   const accountSettings = [
-    { label: "Old Password", type: "password" },
-    { label: "New Password", type: "password" },
-    { label: "Confirm Password", type: "password" },
-  ];
+    { label: "Old Password", type: "password", key: "OldPassword" },
+    { label: "New Password", type: "password", key: "NewPassword" },
+    { label: "Confirm Password", type: "password", key: "ConfirmPassword" },
+  ] as const;
 
   // Load profile data on mount
   useEffect(() => {
@@ -114,8 +124,8 @@ export default function AccountManagementPage() {
           PostalCode: data.postal_code || "",
         };
 
-        setOriginalForm(formData); // ✅ keep a clean copy
-        setPersonalForm(formData); // ✅ editable copy
+        setOriginalForm(formData);
+        setPersonalForm(formData);
       })
       .catch((err) => console.error("Error fetching profile:", err));
   }, []);
@@ -233,8 +243,24 @@ export default function AccountManagementPage() {
                 {saving ? "Saving..." : "Save Changes"}
               </button>
             )}
-            <div className="bg-litratoblack rounded-full cursor-pointer py-2 px-4 text-white">
-              Change Password
+            <div
+              onClick={() => {
+                if (isPassEditable) {
+                  // Cancel -> reset password form
+                  setPassForm({
+                    OldPassword: "",
+                    NewPassword: "",
+                    ConfirmPassword: "",
+                  });
+                  setIsPassEditable(false);
+                } else {
+                  // Enable only password fields
+                  setIsPassEditable(true);
+                }
+              }}
+              className="bg-litratoblack rounded-full cursor-pointer py-2 px-4 text-white"
+            >
+              Change Password{" "}
             </div>
           </div>
         </div>
@@ -300,9 +326,16 @@ export default function AccountManagementPage() {
               <input
                 type={field.type}
                 placeholder="Enter here:"
-                disabled={!isEditable}
+                value={passForm[field.key]}
+                onChange={(e) =>
+                  setPassForm((prev) => ({
+                    ...prev,
+                    [field.key]: e.target.value,
+                  }))
+                }
+                disabled={!isPassEditable}
                 className={`w-full rounded-md px-3 py-2 text-sm focus:outline-none ${
-                  isEditable
+                  isPassEditable
                     ? "bg-gray-200"
                     : "bg-gray-100 text-gray-400 cursor-not-allowed"
                 }`}

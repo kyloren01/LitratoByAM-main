@@ -18,7 +18,7 @@ export default function AdminAccountManagementPage() {
   return (
     <div className="p-4">
       <header className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+        <h1 className="text-2xl font-bold">Account Management</h1>
       </header>
 
       <nav className="flex gap-2 mb-6">
@@ -121,100 +121,53 @@ function CustomersPanel() {
   };
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
-      <div>
-        <h2 className="text-xl font-semibold mb-3">
-          {editingId ? "Edit Customer" : "Add Customer"}
-        </h2>
-        <div className="grid gap-3">
-          <Input
-            label="First name"
-            value={form.firstname}
-            onChange={(v) => setForm((s) => ({ ...s, firstname: v }))}
-          />
-          <Input
-            label="Last name"
-            value={form.lastname}
-            onChange={(v) => setForm((s) => ({ ...s, lastname: v }))}
-          />
-          <Input
-            label="Email"
-            type="email"
-            value={form.email}
-            onChange={(v) => setForm((s) => ({ ...s, email: v }))}
-          />
-          <Input
-            label="Contact"
-            value={form.contact}
-            onChange={(v) => setForm((s) => ({ ...s, contact: v }))}
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={save}
-              className="bg-litratoblack text-white px-4 py-2 rounded-lg font-bold"
-            >
-              Save
-            </button>
-            {editingId && (
-              <button
-                onClick={reset}
-                className="bg-gray-200 text-litratoblack px-4 py-2 rounded-lg font-semibold"
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h2 className="text-xl font-semibold mb-3">Customer Accounts</h2>
-        <div className="overflow-auto">
-          <table className="w-full text-left border border-gray-200 rounded-lg overflow-hidden">
-            <thead className="bg-gray-100">
-              <tr>
-                <Th>First</Th>
-                <Th>Last</Th>
-                <Th>Email</Th>
-                <Th>Contact</Th>
-                <Th className="text-right pr-3">Actions</Th>
+    <div>
+      <h2 className="text-xl font-semibold mb-3">Customer Accounts</h2>
+      <div className="overflow-auto">
+        <table className="w-full text-left border border-gray-200 rounded-lg overflow-hidden">
+          <thead className="bg-gray-100">
+            <tr>
+              <Th>First</Th>
+              <Th>Last</Th>
+              <Th>Email</Th>
+              <Th>Contact</Th>
+              <Th className="text-right pr-3">Actions</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {customers.map((c) => (
+              <tr key={c.id} className="border-t">
+                <Td>{c.firstname}</Td>
+                <Td>{c.lastname}</Td>
+                <Td>{c.email}</Td>
+                <Td>{c.contact}</Td>
+                <Td>
+                  <div className="flex gap-2 justify-start">
+                    <button
+                      onClick={() => startEdit(c)}
+                      className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600"
+                    >
+                      Block
+                    </button>
+                    <button
+                      onClick={() => remove(c.id)}
+                      className="px-3 py-1 rounded bg-green-500 text-white hover:bg-green-600"
+                    >
+                      Unblock
+                    </button>
+                  </div>
+                </Td>
               </tr>
-            </thead>
-            <tbody>
-              {customers.map((c) => (
-                <tr key={c.id} className="border-t">
-                  <Td>{c.firstname}</Td>
-                  <Td>{c.lastname}</Td>
-                  <Td>{c.email}</Td>
-                  <Td>{c.contact}</Td>
-                  <Td>
-                    <div className="flex gap-2 justify-end">
-                      <button
-                        onClick={() => startEdit(c)}
-                        className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => remove(c.id)}
-                        className="px-3 py-1 rounded-lg bg-red-500 text-white hover:bg-red-600"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </Td>
-                </tr>
-              ))}
-              {customers.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="text-center py-6 text-gray-500">
-                    No customers yet
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            ))}
+            {customers.length === 0 && (
+              <tr>
+                <td colSpan={5} className="text-center py-6 text-gray-500">
+                  No customers yet
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

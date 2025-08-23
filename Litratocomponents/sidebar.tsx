@@ -201,7 +201,7 @@ export default function LitratoSidebar({
                 className={`relative transition-all duration-500 flex items-center justify-center ${
                   isOpen
                     ? "w-full h-full rounded-none overflow-visible"
-                    : "w-14 h-14 rounded-full overflow-hidden"
+                    : "w-12 h-12 rounded-full overflow-hidden"
                 }`}
               >
                 <Image

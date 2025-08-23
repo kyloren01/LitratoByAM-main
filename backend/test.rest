@@ -1,19 +1,17 @@
-### Register a user
-POST http://localhost:5000/api/auth/register
-Content-Type: application/json
+### Register a user POST http://localhost:5000/api/auth/register Content-Type: application/json
 
 {
-  "firstname": "John",
-  "lastname": "Doe",
-  "username": "johndoe@example.com",
-  "password": "password123",
-  "birthdate": "1990-01-01",
-  "sex": "male",
-  "contact": "555-1234",
-  "region": "Region XI",
-  "province": "Davao del Sur",
-  "city": "Davao City",
-  "barangay": "33-D",
-  "postal_code": "8000"
+"firstname": "John", "lastname": "Doe", "username": "johndoe@example.com", "password": "password123", "birthdate": "1990-01-01", "sex": "male", "contact": "555-1234", "region": "Region XI", "province": "Davao del Sur", "city": "Davao City", "barangay": "33-D", "postal_code": "8000"
+}
 
+### Login POST http://localhost:5000/api/auth/login Content-Type: application/json
+
+{
+"username": "johndoe@example.com", "password": "password123"
+}
+
+### Change Password PUT http://localhost:5000/api/auth/updatePassword Content-Type: application/json Authorization: Bearer <token>
+
+{
+"oldPassword": "password123", "newPassword": "newpassword456"
 }
