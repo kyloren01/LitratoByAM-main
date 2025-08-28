@@ -4,7 +4,7 @@ import LitratoBranding from "../../../Litratocomponents/Branding";
 import LitratoFooter from "../../../Litratocomponents/Footer";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { toast } from "sonner";
 export default function RegistrationPage() {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -65,6 +65,7 @@ export default function RegistrationPage() {
       const data = await res.json();
       if (res.ok) {
         router.push("/login");
+        toast.success("Registration successful! Please verify your email.");
       } else {
         setError(data.message || "Registration failed");
       }
@@ -301,7 +302,7 @@ export default function RegistrationPage() {
         <div className="flex flex-row justify-center gap-8 my-8 ">
           <div
             onClick={handleBack}
-            className="bg-[#878787] text-litratoblack px-4 py-2 w-28 text-center rounded-lg hover:cursor-pointer font-bold"
+            className="bg-[#878787] text-litratoblack px-4 py-2 w-28 text-center rounded hover:cursor-pointer font-bold"
           >
             Back
           </div>
