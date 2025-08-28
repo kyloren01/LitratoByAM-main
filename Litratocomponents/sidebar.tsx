@@ -1,126 +1,152 @@
 "use client";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import type { KeyboardEvent } from "react";
 import Image from "next/image";
 import { HiMenu } from "react-icons/hi";
-import { FiLogOut } from "react-icons/fi";
-import { useRouter } from "next/navigation";
+import {
+  FiGrid,
+  FiCalendar,
+  FiRefreshCcw,
+  FiUser,
+  FiLogOut,
+} from "react-icons/fi";
+import type { IconType } from "react-icons";
+import { useRouter, usePathname } from "next/navigation";
+
+// Small utility for composing classes
+const cx = (...classes: Array<string | false | null | undefined>) =>
+  classes.filter(Boolean).join(" ");
 
 type SidebarProps = {
   isOpen?: boolean;
   onToggle?: (open: boolean) => void;
 };
 
+// Define NavItem type and hoist static items for stability
+type NavItem = { label: string; Icon: IconType; path: string };
+const NAV_ITEMS: NavItem[] = [
+  { label: "Dashboard", Icon: FiGrid, path: "/customer/dashboard" },
+  { label: "Booking", Icon: FiCalendar, path: "/customer/booking" },
+  { label: "Rescheduling", Icon: FiRefreshCcw, path: "/customer/rescheduling" },
+  { label: "Manage Account", Icon: FiUser, path: "/customer/accountmanager" },
+];
+
 export default function LitratoSidebar({
   isOpen: controlledOpen,
   onToggle,
 }: SidebarProps) {
-  const [activeItem, setActiveItem] = useState("Dashboard");
   const [internalOpen, setInternalOpen] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   const isOpen = controlledOpen ?? internalOpen;
-  const toggleOpen = () => {
+
+  const toggleOpen = useCallback(() => {
     if (onToggle) onToggle(!isOpen);
     else setInternalOpen((prev) => !prev);
-  };
+  }, [onToggle, isOpen]);
 
-  const handleActive = (label: string, path: string) => {
-    setActiveItem(label);
-    router.push(path); // Navigate without reloading
-  };
+  const handleNavigation = useCallback(
+    (path: string) => {
+      if (pathname !== path) router.push(path);
+    },
+    [router, pathname]
+  );
 
-  const handleLogout = () => {
-    setShowLogoutModal(true);
-  };
+  const getNavKeyDown = useCallback(
+    (path: string) => (e: KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handleNavigation(path);
+      }
+    },
+    [handleNavigation]
+  );
 
-  const confirmLogout = () => {
+  const handleLogout = useCallback(() => setShowLogoutModal(true), []);
+  const confirmLogout = useCallback(() => {
     localStorage.removeItem("access_token");
     router.push("/login");
     setShowLogoutModal(false);
-  };
-
-  const cancelLogout = () => {
-    setShowLogoutModal(false);
-  };
-
-  const navItems = [
-    {
-      label: "Dashboard",
-      icon: "/Icons/dashboard.png",
-      path: "/customer/dashboard",
-    },
-    { label: "Booking", icon: "/Icons/booking.png", path: "/customer/booking" },
-    {
-      label: "Rescheduling",
-      icon: "/Icons/rescheduling.png",
-      path: "/customer/rescheduling",
-    },
-    {
-      label: "Manage Account",
-      icon: "/Icons/person.png",
-      path: "/customer/accountmanager",
-    },
-  ];
+  }, [router]);
+  const cancelLogout = useCallback(() => setShowLogoutModal(false), []);
 
   return (
     <div
-      className={`h-screen ${
-        isOpen ? "w-64" : "w-16"
-      } bg-gray-300 flex flex-col justify-between 
-      transition-[width] duration-500 ease-in-out overflow-hidden`}
+      className={cx(
+        "h-screen",
+        isOpen ? "w-64" : "w-16",
+        "bg-gray-300 flex flex-col justify-between transition-[width] duration-500 ease-in-out overflow-hidden"
+      )}
     >
       {/* Top: Toggle + Menu Items */}
       <div className="flex flex-col">
-        {/* Toggle Button */}
-        <div className="flex pl-[17px] py-2" onClick={toggleOpen}>
+        {/* Toggle Button (accessibility-friendly) */}
+        <button
+          type="button"
+          className="flex pl-[17px] py-2 w-fit"
+          onClick={toggleOpen}
+          aria-label="Toggle Sidebar"
+          aria-expanded={isOpen}
+        >
           <HiMenu
-            className="text-3xl text-litratoblack cursor-pointer"
-            aria-label="Toggle Sidebar"
+            className="text-3xl text-litratoblack hover:text-litratored"
+            aria-hidden
           />
-        </div>
+        </button>
 
         {/* Navigation Items */}
-        {navItems.map((item) => (
-          <div
-            key={item.label}
-            onClick={() => handleActive(item.label, item.path)}
-            className={`flex items-center gap-3 pl-[18px] py-2 font-bold rounded-lg cursor-pointer
-              transition-all duration-300 ease-in-out relative group
-              ${
-                activeItem === item.label
+        {NAV_ITEMS.map((item) => {
+          const active = pathname?.startsWith(item.path);
+          return (
+            <div
+              key={item.label}
+              role="button"
+              tabIndex={0}
+              onClick={() => handleNavigation(item.path)}
+              onKeyDown={getNavKeyDown(item.path)}
+              className={cx(
+                "flex items-center py-2 font-bold rounded-lg cursor-pointer transition-all duration-300 ease-in-out relative group",
+                isOpen ? "gap-3 pl-[18px]" : "gap-0 pl-[17.5px]",
+                active
                   ? "bg-litratored text-white"
-                  : "text-litratoblack hover:bg-gray-200"
-              }`}
-          >
-            <Image
-              src={item.icon}
-              alt={`${item.label} icon`}
-              width={28}
-              height={28}
-            />
-            <span
-              className={`whitespace-nowrap transition-opacity duration-300 ease-in-out ${
-                isOpen ? "opacity-100" : "opacity-0"
-              }`}
+                  : "text-litratoblack hover:bg-gray-200 hover:text-litratored"
+              )}
+              aria-current={active ? "page" : undefined}
             >
-              {item.label}
-            </span>
-            {!isOpen && (
-              <span className="absolute left-14 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <item.Icon
+                size={28}
+                className="text-current shrink-0"
+                aria-hidden
+              />
+              <span
+                aria-hidden={!isOpen}
+                className={cx(
+                  "whitespace-nowrap transition-all duration-300 ease-in-out",
+                  isOpen
+                    ? "opacity-100 w-auto"
+                    : "opacity-0 w-0 overflow-hidden pointer-events-none"
+                )}
+              >
                 {item.label}
               </span>
-            )}
-          </div>
-        ))}
+              {!isOpen && (
+                <span className="absolute left-14 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  {item.label}
+                </span>
+              )}
+            </div>
+          );
+        })}
 
-        {/* Flexible Logout with smooth transitions */}
+        {/* Logout (unchanged position and design) */}
         <div
           onClick={handleLogout}
           className={`relative ${
             isOpen ? "w-[50%]" : "w-10"
           } h-10 bg-litratoblack cursor-pointer self-center mt-4 text-white font-semibold rounded-full text-center flex items-center justify-center group
-          transition-[width,background-color,transform,opacity] duration-300 ease-in-out hover:bg-red-600 hover:scale-[1.03] active:scale-95`}
+          transition-[width,background-color,transform,opacity] duration-300 ease-in-out hover:bg-red-600  active:scale-95`}
         >
           {isOpen ? (
             "Logout"
@@ -131,7 +157,7 @@ export default function LitratoSidebar({
             />
           )}
           {!isOpen && (
-            <span className="absolute left-12 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 translate-y-1 group-hover:opacity-100 hover:scale-110 duration-500 transition-all ease-out">
+            <span className="absolute left-12 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 translate-y-1 group-hover:opacity-100 transition-all ease-out">
               Logout
             </span>
           )}
@@ -140,22 +166,29 @@ export default function LitratoSidebar({
 
       <div className="mt-auto py-6 flex flex-col items-center gap-4">
         {showLogoutModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="logout-title"
+          >
             <div className="bg-white rounded-lg shadow-lg p-6 w-80 flex flex-col items-center">
-              <h2 className="text-lg font-bold mb-2">Confirm Logout</h2>
+              <h2 id="logout-title" className="text-lg font-bold mb-2">
+                Confirm Logout
+              </h2>
               <p className="mb-4 text-center">
                 Are you sure you want to logout?
               </p>
               <div className="flex gap-4">
                 <div
                   onClick={confirmLogout}
-                  className="bg-litratoblack hover:scale-110 duration-500 text-white px-4 py-2 rounded-full hover:bg-red-600"
+                  className="bg-litratoblack cursor-pointer duration-500 text-white px-4 py-2 rounded-full hover:bg-red-600"
                 >
                   Logout
                 </div>
                 <div
                   onClick={cancelLogout}
-                  className="bg-gray-300 hover:scale-110 duration-500 text-gray-800 px-4 py-2 rounded-full hover:bg-gray-400"
+                  className="bg-gray-300 duration-500 cursor-pointer text-gray-800 px-4 py-2 rounded-full hover:bg-gray-400"
                 >
                   Cancel
                 </div>
