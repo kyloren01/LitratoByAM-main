@@ -1,42 +1,18 @@
 "use client";
-
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { is } from "date-fns/locale";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
 
-// Hoisted static schemas (prevents re-allocations each render)
-const PERSONAL_INFO = [
-  { label: "First Name", type: "text", key: "Firstname" },
-  { label: "Last Name", type: "text", key: "Lastname" },
-  { label: "Birthdate", type: "text", key: "Birthdate" },
-  { label: "Sex", type: "text", key: "Sex" },
-  { label: "Contact Number", type: "text", key: "ContactNumber" },
-] as const;
-
-const ADDRESS_INFO = [
-  { label: "Region", type: "text", key: "Region" },
-  { label: "Province", type: "text", key: "Province" },
-  { label: "City/Town", type: "text", key: "City" },
-  { label: "Barangay", type: "text", key: "Barangay" },
-  { label: "Postal Code", type: "text", key: "PostalCode" },
-] as const;
-
-const ACCOUNT_SETTINGS = [
-  { label: "Old Password", type: "password" },
-  { label: "New Password", type: "password" },
-  { label: "Confirm Password", type: "password" },
-];
-
 export default function AccountManagementPage() {
   const router = useRouter();
-
-  // ✅ Toggle between read-only and editable profile
   const [isEditable, setIsEditable] = useState(false);
+  const [isPassEditable, setIsPassEditable] = useState(false);
+  const [isPassModalOpen, setIsPassModalOpen] = useState(false);
 
-  // ✅ User profile data (basic info)
+  const handleSavePass = () => {};
   const [profile, setProfile] = useState<{
     username: string;
     email: string;
@@ -44,7 +20,6 @@ export default function AccountManagementPage() {
     url?: string;
   } | null>(null);
 
-  // ✅ Default structure for user profile data
   const [originalForm, setOriginalForm] = useState({
     Firstname: "",
     Lastname: "",
@@ -58,80 +33,107 @@ export default function AccountManagementPage() {
     PostalCode: "",
   });
 
-  // ✅ Form for handling password changes
-  const [passwordForm, setPasswordForm] = useState({
-    oldPassword: "",
-    newPassword: "",
-    confirmPassword: "",
+  const [passForm, setPassForm] = useState({
+    OldPassword: "",
+    NewPassword: "",
+    ConfirmPassword: "",
   });
-  const [changingPassword, setChangingPassword] = useState(false);
-  const [passwordEditMode, setPasswordEditMode] = useState(false);
-
-  // ✅ Editable version of personal data
   const [personalForm, setPersonalForm] = useState(originalForm);
 
-  // ✅ Track when saving profile
   const [saving, setSaving] = useState(false);
 
-  /**
-   * ✅ Load profile data when component mounts
-   */
+  const personalData = [personalForm];
+
+  const personalInfo = [
+    { label: "First Name", type: "text", key: "Firstname" },
+    { label: "Last Name", type: "text", key: "Lastname" },
+    { label: "Birthdate", type: "text", key: "Birthdate" },
+    { label: "Sex", type: "text", key: "Sex" },
+    { label: "Contact Number", type: "text", key: "ContactNumber" },
+  ] as const;
+
+  const addressInfo = [
+    { label: "Region", type: "text", key: "Region" },
+    { label: "Province", type: "text", key: "Province" },
+    { label: "City/Town", type: "text", key: "City" },
+    { label: "Barangay", type: "text", key: "Barangay" },
+    { label: "Postal Code", type: "text", key: "PostalCode" },
+  ] as const;
+
+  const accountSettings = [
+    { label: "Old Password", type: "password", key: "OldPassword" },
+    { label: "New Password", type: "password", key: "NewPassword" },
+    { label: "Confirm Password", type: "password", key: "ConfirmPassword" },
+  ] as const;
+
+  // Load profile data on mount
   useEffect(() => {
-    const controller = new AbortController();
     const token =
       typeof window !== "undefined"
         ? localStorage.getItem("access_token")
         : null;
+    if (!token) return; // no token, skip
 
-    if (!token) return;
-
-    (async () => {
+    const load = async () => {
       try {
         const res = await fetch(`${API_BASE}/api/auth/getProfile`, {
-          signal: controller.signal,
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }, // add Bearer prefix
         });
 
         if (res.status === 401) {
-          // If unauthorized, clear token and redirect to login
-          localStorage.removeItem("access_token");
+          try {
+            localStorage.removeItem("access_token");
+          } catch {}
           router.replace("/login");
           return;
         }
 
         const data = await res.json();
         setProfile(data);
+      } catch (err) {
+        console.error("Profile fetch failed:", err);
+      }
+    };
 
+    load();
+  }, [router]);
+
+  // Fetch user profile
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+
+    fetch(`${API_BASE}/api/auth/getProfile`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
         const formData = {
-          Firstname: data.firstname ?? "",
-          Lastname: data.lastname ?? "",
-          Birthdate: data.birthdate ?? "",
-          Sex: data.sex ?? "",
-          ContactNumber: data.contact ?? "",
-          Region: data.region ?? "",
-          Province: data.province ?? "",
-          City: data.city ?? "",
-          Barangay: data.barangay ?? "",
-          PostalCode: data.postal_code ?? "",
+          Firstname: data.firstname || "",
+          Lastname: data.lastname || "",
+          Birthdate: data.birthdate || "",
+          Sex: data.sex || "",
+          ContactNumber: data.contact || "",
+          Region: data.region || "",
+          Province: data.province || "",
+          City: data.city || "",
+          Barangay: data.barangay || "",
+          PostalCode: data.postal_code || "",
         };
 
         setOriginalForm(formData);
         setPersonalForm(formData);
-      } catch (err: any) {
-        if (err.name !== "AbortError") {
-          console.error("Profile fetch failed:", err);
-        }
-      }
-    })();
+      })
+      .catch((err) => console.error("Error fetching profile:", err));
+  }, []);
 
-    return () => controller.abort();
-  }, [router]);
-
-  /**
-   * ✅ Helper function to display dates nicely
-   */
   function formatReadableDate(isoString: string): string {
     const date = new Date(isoString);
+
+    // Format: "Aug 18 2003"
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -139,216 +141,133 @@ export default function AccountManagementPage() {
     });
   }
 
-  // Memoized dirty detectors (avoid stringify)
-  const isPersonalDirty = useMemo(
-    () =>
-      Object.keys(originalForm).some(
-        (k) => (personalForm as any)[k] !== (originalForm as any)[k]
-      ),
-    [personalForm, originalForm]
-  );
-
-  const passwordDirty = useMemo(
-    () =>
-      Boolean(
-        passwordForm.oldPassword ||
-          passwordForm.newPassword ||
-          passwordForm.confirmPassword
-      ),
-    [passwordForm]
-  );
-
-  // Save profile wrapped in useCallback
-  const saveProfile = useCallback(async () => {
-    setSaving(true);
-    try {
-      const token = localStorage.getItem("access_token");
-      const payload = {
-        firstname: personalForm.Firstname,
-        lastname: personalForm.Lastname,
-        birthdate: personalForm.Birthdate,
-        sex: personalForm.Sex,
-        contact: personalForm.ContactNumber,
-        region: personalForm.Region,
-        province: personalForm.Province,
-        city: personalForm.City,
-        barangay: personalForm.Barangay,
-        postal_code: personalForm.PostalCode,
-      };
-
-      const res = await fetch(`${API_BASE}/api/auth/updateProfile`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("Failed to save");
-      const data = await res.json();
-
-      const updated = {
-        Firstname: data.user?.firstname ?? personalForm.Firstname,
-        Lastname: data.user?.lastname ?? personalForm.Lastname,
-        Birthdate: data.user?.birthdate ?? personalForm.Birthdate,
-        Sex: data.user?.sex ?? personalForm.Sex,
-        ContactNumber: data.user?.contact ?? personalForm.ContactNumber,
-        Region: data.user?.region ?? personalForm.Region,
-        Province: data.user?.province ?? personalForm.Province,
-        City: data.user?.city ?? personalForm.City,
-        Barangay: data.user?.barangay ?? personalForm.Barangay,
-        PostalCode: data.user?.postal_code ?? personalForm.PostalCode,
-      };
-
-      setOriginalForm(updated);
-      setPersonalForm(updated);
-      setIsEditable(false);
-      toast.success("Changes have been saved");
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e.message || "Failed to save changes");
-    } finally {
-      setSaving(false);
-    }
-  }, [personalForm]);
-
-  // Unified profile button handler
-  const handleProfileAction = useCallback(async () => {
-    if (!isEditable) {
-      setIsEditable(true);
-      return;
-    }
-    if (!isPersonalDirty) {
-      setPersonalForm(originalForm);
-      setIsEditable(false);
-      return;
-    }
-    if (isPersonalDirty && !saving) {
-      await saveProfile();
-    }
-  }, [isEditable, isPersonalDirty, originalForm, saving, saveProfile]);
-
-  // Password button handler
-  const handlePasswordAction = useCallback(async () => {
-    if (changingPassword) return;
-
-    if (!passwordEditMode) {
-      setPasswordEditMode(true);
-      return;
-    }
-
-    if (passwordEditMode && !passwordDirty) {
-      setPasswordEditMode(false);
-      setPasswordForm({
-        oldPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-      return;
-    }
-
-    if (passwordDirty) {
-      if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-        toast.error("New password and confirmation do not match");
-        return;
-      }
-      setChangingPassword(true);
-      try {
-        const token = localStorage.getItem("access_token");
-        const res = await fetch(`${API_BASE}/api/auth/changePassword`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            oldPassword: passwordForm.oldPassword,
-            newPassword: passwordForm.newPassword,
-          }),
-        });
-
-        const data = await res.json();
-        if (!res.ok)
-          throw new Error(data.message || "Failed to change password");
-
-        toast.success("Password changed successfully!");
-        setPasswordForm({
-          oldPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
-        setPasswordEditMode(false);
-      } catch (err: any) {
-        toast.error(err.message || "Error changing password");
-      } finally {
-        setChangingPassword(false);
-      }
-    }
-  }, [changingPassword, passwordEditMode, passwordDirty, passwordForm]);
-
   return (
     <div className="h-screen p-4">
       <div className="flex flex-col p-4 justify-center gap-4">
-        {/* ================= Profile Section ================= */}
         <div className="flex flex-col justify-center gap-2 items-center">
-          {/* Profile picture */}
           <div className="flex bg-black h-30 w-30 rounded-full relative">
             <Image
-              src={"/Images/me.jpg"}
+              src={"/Images/hanz.png"}
               alt="profile pic"
               fill
-              className="rounded-full object-cover "
+              className="rounded-full"
             />
           </div>
-
-          {/* Welcome text */}
           <p className="text-black text-center text-3xl font-semibold">
             Welcome, {personalForm.Firstname} {personalForm.Lastname ?? "User"}!
           </p>
-
-          {/* Profile action buttons */}
+          {/* {profile?.email ? (
+            <p className="text-gray-600 text-sm">Username: {profile.email}</p>
+          ) : null} */}
           <div className="flex flex-row gap-6">
-            {/* Unified Edit/Cancel/Save button */}
             <div
-              onClick={handleProfileAction}
-              className={`bg-litratoblack rounded-full cursor-pointer py-2 px-4 text-white ${
-                saving ? "opacity-70 pointer-events-none" : ""
-              }`}
+              onClick={() => {
+                if (isEditable) {
+                  // Cancel -> reset form
+                  setPersonalForm(originalForm);
+                  setIsEditable(false);
+                } else {
+                  // Edit mode
+                  setIsEditable(true);
+                }
+              }}
+              className="bg-litratoblack rounded-full cursor-pointer py-2 px-4 text-white"
             >
-              {!isEditable
-                ? "Edit Profile"
-                : saving
-                ? "Saving..."
-                : isPersonalDirty
-                ? "Save Changes"
-                : "Cancel Edit"}
+              {isEditable ? "Cancel Edit" : "Edit Profile"}
             </div>
+            {isEditable && (
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    const token = localStorage.getItem("access_token");
+                    const payload = {
+                      firstname: personalForm.Firstname,
+                      lastname: personalForm.Lastname,
+                      birthdate: personalForm.Birthdate,
+                      sex: personalForm.Sex,
+                      contact: personalForm.ContactNumber,
+                      region: personalForm.Region,
+                      province: personalForm.Province,
+                      city: personalForm.City,
+                      barangay: personalForm.Barangay,
+                      postal_code: personalForm.PostalCode,
+                    };
 
-            {/* Black Change Password button with improved detector */}
+                    const res = await fetch(
+                      `${API_BASE}/api/auth/updateProfile`,
+                      {
+                        method: "PUT",
+                        headers: {
+                          "Content-Type": "application/json",
+                          Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify(payload),
+                      }
+                    );
+
+                    if (!res.ok) throw new Error("Failed to save");
+                    const data = await res.json();
+
+                    // Update both states after saving
+                    const updated = {
+                      Firstname: data.user?.firstname ?? personalForm.Firstname,
+                      Lastname: data.user?.lastname ?? personalForm.Lastname,
+                      Birthdate: data.user?.birthdate ?? personalForm.Birthdate,
+                      Sex: data.user?.sex ?? personalForm.Sex,
+                      ContactNumber:
+                        data.user?.contact ?? personalForm.ContactNumber,
+                      Region: data.user?.region ?? personalForm.Region,
+                      Province: data.user?.province ?? personalForm.Province,
+                      City: data.user?.city ?? personalForm.City,
+                      Barangay: data.user?.barangay ?? personalForm.Barangay,
+                      PostalCode:
+                        data.user?.postal_code ?? personalForm.PostalCode,
+                    };
+
+                    setOriginalForm(updated);
+                    setPersonalForm(updated);
+                    setIsEditable(false);
+                  } catch (e) {
+                    console.error(e);
+                    alert("Failed to save changes");
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                className={`rounded py-2 px-4 text-white ${
+                  saving ? "bg-gray-500" : "bg-green-600 hover:bg-green-700"
+                }`}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
+            )}
             <div
-              onClick={handlePasswordAction}
-              className={`bg-litratoblack rounded-full py-2 px-4 text-white ${
-                changingPassword
-                  ? "bg-gray-500 cursor-not-allowed"
-                  : "cursor-pointer"
-              }`}
+              onClick={() => {
+                if (isPassEditable) {
+                  // Cancel -> reset password form
+                  setPassForm({
+                    OldPassword: "",
+                    NewPassword: "",
+                    ConfirmPassword: "",
+                  });
+                  setIsPassEditable(false);
+                } else {
+                  // Enable only password fields
+                  setIsPassEditable(true);
+                }
+              }}
+              className="bg-litratoblack rounded-full cursor-pointer py-2 px-4 text-white"
             >
-              {changingPassword
-                ? "Saving..."
-                : passwordEditMode
-                ? passwordDirty
-                  ? "Save Password "
-                  : "Cancel Edit"
-                : "Change Password"}
+              Change Password{" "}
             </div>
           </div>
         </div>
 
-        {/* ================= Personal Info Section ================= */}
-        <p className="text-2xl font-semibold">Manage your account</p>
+        <p className="text-2xl">Manage your account</p>
         <div className="flex flex-row gap-12 ">
-          {PERSONAL_INFO.map((field) => (
+          {personalInfo.map((field) => (
             <div key={field.label} className="flex flex-col w-auto">
               <label>{field.label}:</label>
               <input
@@ -377,9 +296,8 @@ export default function AccountManagementPage() {
           ))}
         </div>
 
-        {/* ================= Address Info Section ================= */}
         <div className="flex flex-row gap-12">
-          {ADDRESS_INFO.map((field) => (
+          {addressInfo.map((field) => (
             <div key={field.label} className="flex flex-col w-auto">
               <label>{field.label}:</label>
               <input
@@ -391,47 +309,35 @@ export default function AccountManagementPage() {
                     [field.key]: e.target.value,
                   }))
                 }
-                readOnly={!isEditable}
+                readOnly={!isEditable} // 🔑 only read-only, not fully disabled
                 className={`w-full rounded-md px-3 py-2 text-sm focus:outline-none ${
-                  isEditable
-                    ? "bg-gray-200"
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  isEditable ? "bg-gray-200" : "bg-gray-100 text-gray-600"
                 }`}
               />
             </div>
           ))}
         </div>
 
-        <p className="text-2xl font-semibold">Account Settings</p>
+        <p className="text-2xl">Account Settings</p>
         <div className="flex flex-col gap-4 w-1/3">
-          {ACCOUNT_SETTINGS.map((field) => (
+          {accountSettings.map((field) => (
             <div key={field.label} className="flex flex-col">
               <label>{field.label}:</label>
               <input
                 type={field.type}
                 placeholder="Enter here:"
-                value={
-                  field.label === "Old Password"
-                    ? passwordForm.oldPassword
-                    : field.label === "New Password"
-                    ? passwordForm.newPassword
-                    : passwordForm.confirmPassword
-                }
+                value={passForm[field.key]}
                 onChange={(e) =>
-                  setPasswordForm((prev) => ({
+                  setPassForm((prev) => ({
                     ...prev,
-                    [field.label === "Old Password"
-                      ? "oldPassword"
-                      : field.label === "New Password"
-                      ? "newPassword"
-                      : "confirmPassword"]: e.target.value,
+                    [field.key]: e.target.value,
                   }))
                 }
-                disabled={!passwordEditMode || changingPassword}
+                disabled={!isPassEditable}
                 className={`w-full rounded-md px-3 py-2 text-sm focus:outline-none ${
-                  !passwordEditMode || changingPassword
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-200"
+                  isPassEditable
+                    ? "bg-gray-200"
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
                 }`}
               />
             </div>
@@ -441,4 +347,3 @@ export default function AccountManagementPage() {
     </div>
   );
 }
-//
