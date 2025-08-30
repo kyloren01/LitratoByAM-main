@@ -1,29 +1,21 @@
-const express = require('express')
-const adminController = require('../Controller/adminController')
-const authMiddleware = require('../Middleware/authMiddleware')
-const roleMiddleware = require('../Middleware/roleMiddleware')
+const express = require("express");
+const adminController = require("../Controller/adminController");
+const authMiddleware = require("../Middleware/authMiddleware");
+const roleMiddleware = require("../Middleware/roleMiddleware");
 
-const router = express.Router()
+const router = express.Router();
 
 router.get(
-  '/dashboard',
+  "/dashboard",
   authMiddleware,
-  roleMiddleware('admin'),
+  roleMiddleware("admin"),
   adminController.getDashboard
-)
+);
 router.post(
-  '/manage-users',
+  "/manage-users",
   authMiddleware,
-  roleMiddleware('admin'),
+  roleMiddleware("admin"),
   adminController.manageUsers
-)
+);
 
-// List customers (admin only) — moved from customerRoutes
-router.get(
-  '/list',
-  authMiddleware,
-  roleMiddleware('admin'),
-  adminController.listCustomers
-)
-
-module.exports = router
+module.exports = router;
