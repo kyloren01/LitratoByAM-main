@@ -1,11 +1,7 @@
-const express = require('express');
-const customerController = require('../Controller/customerController');
-const authMiddleware = require('../Middleware/authMiddleware');
-const roleMiddleware = require('../Middleware/roleMiddleware');
+const express = require('express')
 
-const router = express.Router();
+const router = express.Router()
 
+// No customer routes currently
 
-
-
-module.exports = router;
+module.exports = router
