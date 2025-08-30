@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -124,8 +124,8 @@
     @apply bg-background text-foreground;
     font-family: var(--font-geist-sans), var(--font-geist-mono),
       var(--font-antic-didone), sans-serif;
-    --font-geist-sans: "Geist", sans-serif;
-    --font-geist-mono: "Geist Mono", monospace;
-    --font-antic-didone: "Antic Didone", serif;
+    --font-geist-sans: 'Geist', sans-serif;
+    --font-geist-mono: 'Geist Mono', monospace;
+    --font-antic-didone: 'Antic Didone', serif;
   }
 }
