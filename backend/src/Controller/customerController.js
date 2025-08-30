@@ -1,1 +1,3 @@
-// Customer-specific controllers (none currently)
+const userModel = require('../Model/userModel');
+const bcrypt = require('bcrypt');
+
